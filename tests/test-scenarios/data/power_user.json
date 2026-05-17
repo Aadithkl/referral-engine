@@ -1,0 +1,37 @@
+{
+  "user_id": "power_user_001",
+  "source": "product_backend",
+  "data": {
+    "events": [
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-14T09:00:00Z"},
+      {"event_type": "feature_used", "payload": {"feature": "analytics", "count": 12}, "created_at": "2026-05-13T15:00:00Z"},
+      {"event_type": "feature_used", "payload": {"feature": "export", "count": 8}, "created_at": "2026-05-12T11:00:00Z"},
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-12T09:00:00Z"},
+      {"event_type": "feature_used", "payload": {"feature": "dashboard", "count": 20}, "created_at": "2026-05-11T14:00:00Z"},
+      {"event_type": "invite_sent", "payload": {"recipients": 3}, "created_at": "2026-05-10T10:00:00Z"},
+      {"event_type": "support_ticket", "payload": {"status": "resolved"}, "created_at": "2026-05-01T08:00:00Z"}
+    ],
+    "profile": {
+      "name": "Alice PowerUser",
+      "email": "alice@example.com",
+      "created_at": "2024-09-15T00:00:00Z",
+      "last_active_at": "2026-05-14T09:30:00Z",
+      "account_age_days": 607,
+      "total_product_sessions_90d": 95,
+      "feature_adoption_count": 8,
+      "support_tickets_90d": 1,
+      "support_tickets_resolved": 1,
+      "positive_outcome_events": 15,
+      "recent_activity_trend": "rising",
+      "twitter_handle": "alice_power",
+      "twitter_followers": 5000,
+      "twitter_following": 1200,
+      "twitter_tweet_count": 850,
+      "twitter_engagement_rate": 0.052,
+      "prior_referrals_total": 8,
+      "last_asked_at": "2026-04-20T10:00:00Z",
+      "last_declined_at": null
+    }
+  },
+  "callback_url": null
+}

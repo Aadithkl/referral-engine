@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curve Designer — Referral Engine</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #111827; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --dim: #64748b;
+    --primary: #3b82f6; --active: #60a5fa;
+    --hook: #10b981; --valley: #f59e0b; --surge: #ef4444; --plateau: #8b5cf6; --target: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  header { display: flex; align-items: center; gap: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; flex-shrink: 0; }
+  header .tab { padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; color: var(--muted); transition: all 0.15s; user-select: none; }
+  header .tab:hover { color: var(--text); }
+  header .tab.active { color: var(--active); border-bottom-color: var(--active); }
+  header .spacer { flex: 1; }
+  header .btn { background: var(--primary); color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: 12px; }
+  header .btn:hover { filter: brightness(1.15); }
+  header .btn.saved { background: var(--hook); }
+
+  .layout { display: flex; flex: 1; min-height: 0; }
+  aside { width: 340px; min-width: 340px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
+  aside .panel { display: none; flex-direction: column; }
+  aside .panel.active { display: flex; }
+  aside .basehook { padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; gap: 8px; }
+  aside .basehook label { font-size: 10px; color: var(--active); font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+  aside .basehook input[type=number] { width: 65px; background: var(--bg); color: var(--text); border: 1px solid var(--primary); border-radius: 3px; padding: 3px 6px; font-size: 12px; text-align: right; font-weight: 600; }
+  aside .basehook .hint { font-size: 9px; color: var(--dim); }
+  aside .qblock { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  aside .qblock h4 { font-size: 11px; margin-bottom: 6px; font-weight: 700; }
+  aside .group { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  aside .group h4 { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  aside .group.setup-bg { background: var(--surface2); }
+  aside .group.setup-bg .badge { display: inline-block; background: var(--primary); color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 8px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
+
+  .row { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+  .row label { font-size: 10px; color: var(--muted); min-width: 84px; text-align: right; flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: var(--primary); height: 3px; }
+  .row input[type=number] { width: 60px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+  .row select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font-size: 10px; }
+
+  .computed { font-size: 9px; color: var(--dim); margin-top: 2px; padding: 0 84px 0 0; }
+  .computed span { color: var(--muted); }
+  .computed em { color: var(--active); font-style: normal; }
+
+  main { flex: 1; display: flex; flex-direction: column; padding: 12px 20px; gap: 6px; overflow: hidden; }
+  .scorebar { display: flex; gap: 20px; font-size: 12px; color: var(--muted); }
+  .scorebar b { color: var(--text); }
+  .scorebar em { color: var(--active); font-style: normal; font-weight: 600; }
+  .scorebar .target-badge { background: var(--target); color: #fff; font-size: 11px; padding: 2px 10px; border-radius: 4px; font-weight: 700; }
+  .legend { display: flex; gap: 14px; font-size: 10px; color: var(--muted); }
+  .legend span { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .chart-wrap { flex: 1; min-height: 0; }
+  canvas { width: 100% !important; height: 100% !important; }
+  #stats { font-size: 11px; color: var(--muted); }
+  #stats b { color: var(--text); }
+
+  /* Tracking tab */
+  .track-filters { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .track-filters input[type=text] { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 10px; min-width: 0; }
+  .track-filters select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 10px; }
+  .track-filters .refresh-btn { background: var(--primary); color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 10px; cursor: pointer; white-space: nowrap; }
+  .track-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .track-table th { text-align: left; padding: 5px 8px; color: var(--dim); border-bottom: 2px solid var(--border); font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .track-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .track-table .uid { color: var(--muted); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .track-table .progress-cell { min-width: 70px; }
+  .track-table .mini-bar { height: 5px; background: var(--bg); border-radius: 3px; margin-bottom: 2px; overflow: hidden; }
+  .track-table .mini-fill { height: 100%; border-radius: 3px; }
+  .track-table .bump-btn { background: var(--primary); color: #fff; border: none; border-radius: 3px; padding: 1px 6px; font-size: 9px; cursor: pointer; }
+  .track-table .bump-btn:hover { filter: brightness(1.2); }
+  .track-table .bump-btn:disabled { opacity: 0.3; cursor: default; }
+  .track-row { cursor: pointer; }
+  .track-row:hover { background: rgba(59,130,246,0.05); }
+  .detail-row { display: none; background: var(--surface2); }
+  .detail-row td { padding: 10px 12px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 10px; }
+  .detail-grid h5 { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .detail-curve { max-height: 180px; overflow-y: auto; }
+  .detail-curve .step-row { display: flex; gap: 4px; padding: 2px 0; align-items: center; }
+  .detail-curve .step-row.active { background: rgba(59,130,246,0.1); border-radius: 2px; }
+  .detail-curve .snum { width: 24px; color: var(--dim); text-align: right; flex-shrink: 0; }
+  .detail-curve .srew { width: 44px; color: var(--muted); text-align: right; flex-shrink: 0; }
+  .detail-curve .sphase { font-size: 8px; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; }
+  .detail-hist { font-size: 9px; color: var(--dim); max-height: 180px; overflow-y: auto; }
+  .detail-hist .hist-item { padding: 2px 0; }
+  .empty-tracking { padding: 20px 14px; text-align: center; color: var(--dim); font-size: 10px; }
+
+  /* Pipeline tab */
+  .pipe-form { padding: 8px 10px; }
+  .pipe-form .field { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+  .pipe-form .field label { font-size: 10px; color: var(--muted); min-width: 100px; text-align: right; flex-shrink: 0; }
+  .pipe-form .field input, .pipe-form .field select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font-size: 10px; width: 100px; }
+  .pipe-form .field select { width: 106px; }
+  .pipe-disclaimer { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 6px; padding: 8px 10px; margin: 8px 10px; font-size: 9px; color: var(--valley); line-height: 1.4; }
+  .pipe-btn-row { display: flex; gap: 4px; padding: 8px 10px; }
+  .pipe-btn-row button { flex: 1; border: none; border-radius: 5px; padding: 6px 0; font-size: 11px; font-weight: 600; cursor: pointer; color: #fff; }
+  .pipe-btn-row .gen-btn { background: var(--plateau); }
+  .pipe-btn-row .run-btn { background: var(--accent); }
+  .pipe-btn-row button:hover { filter: brightness(1.15); }
+  .pipe-btn-row button:disabled { opacity: 0.4; cursor: default; filter: none; }
+  .pipe-result { padding: 8px 10px; font-size: 10px; }
+  .pipe-result .res-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 6px; }
+  .pipe-result .res-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+  .pipe-result .res-row .rlbl { color: var(--dim); }
+  .pipe-result .res-row .rval { color: var(--text); font-weight: 600; }
+  .pipe-result .res-err { color: var(--surge); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="tab active" data-tab="curve">Curve Designer</span>
+  <span class="tab" data-tab="setup">Test Inputs</span>
+  <span class="tab" data-tab="saved">Saved Curves</span>
+  <span class="tab" data-tab="tracking">User Tracking</span>
+  <span class="tab" data-tab="pipeline">Run Pipeline</span>
+  <span class="spacer"></span>
+  <button class="btn" id="saveBtn">Save to .env</button>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="panel active" id="panel-curve"></div>
+    <div class="panel" id="panel-setup"></div>
+    <div class="panel" id="panel-saved"></div>
+    <div class="panel" id="panel-tracking"></div>
+    <div class="panel" id="panel-pipeline"></div>
+  </aside>
+
+  <main>
+    <div class="scorebar">
+      Reach <b id="sReach">—</b>  Adv <b id="sAdv">—</b>  PCU <b id="sPcu">—</b>
+      <em id="sQuad">—</em>
+      <span id="sPenalty" style="font-size:11px;color:var(--muted)">Pen —</span>
+      <span class="target-badge" id="sTarget">Target —</span>
+    </div>
+    <div class="legend">
+      <span><span style="background:var(--hook)"></span> Hook</span>
+      <span><span style="background:var(--valley)"></span> Valley</span>
+      <span><span style="background:var(--surge)"></span> Surge</span>
+      <span><span style="background:var(--plateau)"></span> Plateau</span>
+      <span><span style="background:var(--target);width:2px;height:14px;display:inline-block"></span> Target</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div id="stats">Steps <b id="sSteps">—</b> &nbsp; Total <b id="sTotal">—</b> &nbsp; Avg/step <b id="sAvg">—</b> &nbsp; Peak <b id="sPeak">—</b></div>
+  </main>
+</div>
+
+<script>
+Chart.defaults.font.color = '#94a3b8'; Chart.defaults.font.size = 11; Chart.defaults.borderColor = '#334155';
+const QC = { 'Influencer': '#3b82f6', 'Broadcaster': '#f59e0b', 'Fan': '#10b981', 'Newcomer': '#8b5cf6' };
+const chartCtx = document.getElementById('chart').getContext('2d');
+let chart = null, timer = null, testFields = [], quadrantParams = [], quadrantValues = {}, baseReward = 10;
+
+function fmtVal(type, v) {
+  if (type === 'pct') return (v*100).toFixed(0) + '%';
+  if (type === 'dollar') return '$' + Number(v).toFixed(0);
+  if (type === 'float') return Number(v).toFixed(1);
+  return String(v);
+}
+function parseUnfmt(s) { return parseFloat(String(s).replace(/[$,%]/g,'')) || 0; }
+function sliderStep(type) {
+  if (type === 'dollar') return 1; if (type === 'pct') return 0.01; if (type === 'int') return 1; return 'any';
+}
+
+/* Tabs */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  document.querySelectorAll('aside .panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+  if (t.dataset.tab === 'tracking') loadUserTracking();
+}));
+
+/* Build panels */
+function buildPanels(cfg) {
+  baseReward = cfg.base_reward || 10;
+  testFields = cfg.test_fields;
+  quadrantParams = cfg.quadrant_params;
+  quadrantValues = cfg.quadrant_values;
+
+  const pc = document.getElementById('panel-curve');
+  pc.innerHTML = '';
+
+  const bh = document.createElement('div'); bh.className = 'basehook';
+  const bhl = document.createElement('label'); bhl.textContent = 'Base Reward'; bh.appendChild(bhl);
+  const bhi = document.createElement('input'); bhi.type = 'number'; bhi.value = baseReward; bhi.min = 1; bhi.max = 100; bhi.step = 1; bhi.dataset.key = 'BASE_REWARD';
+  bhi.addEventListener('input', () => { baseReward = parseFloat(bhi.value) || 10; debouncePreview(); });
+  bh.appendChild(bhi);
+  const bhh = document.createElement('span'); bhh.className = 'hint'; bhh.textContent = 'Unit anchor for all curves'; bh.appendChild(bhh);
+  pc.appendChild(bh);
+
+  Object.entries(quadrantValues).forEach(([qname, vals]) => {
+    const block = document.createElement('div'); block.className = 'qblock';
+    const h4 = document.createElement('h4'); h4.style.color = QC[qname]; h4.textContent = qname;
+    block.appendChild(h4);
+
+    quadrantParams.forEach(p => {
+      const fullKey = qname.toUpperCase() + '_' + p.key;
+      block.appendChild(buildRow(p, fullKey, vals[p.key.toLowerCase()]));
+    });
+
+    const comp = document.createElement('div'); comp.className = 'computed';
+    block.appendChild(comp);
+    pc.appendChild(block);
+  });
+
+  const ps = document.getElementById('panel-setup');
+  ps.innerHTML = '';
+
+  ps.appendChild(hdr('Test Inputs'));
+  const g1 = document.createElement('div'); g1.className = 'group setup-bg';
+  const badge = document.createElement('div'); badge.className = 'badge'; badge.textContent = 'preview only';
+  g1.appendChild(badge);
+  cfg.test_fields.forEach(f => g1.appendChild(buildFieldRow(f)));
+  ps.appendChild(g1);
+
+  if (cfg.thresholds && cfg.thresholds.length) {
+    ps.appendChild(hdr('Raw Thresholds'));
+    const g2 = document.createElement('div'); g2.className = 'group';
+    cfg.thresholds.forEach(t => g2.appendChild(buildGateRow(t)));
+    ps.appendChild(g2);
+  }
+
+  // Saved Curves panel
+  const psv = document.getElementById('panel-saved');
+  psv.innerHTML = '<div class="group" style="padding:12px 14px;color:var(--muted);font-size:11px;" id="savedContent">Loading saved curves…</div>';
+  loadSavedCurves();
+
+  // User Tracking panel
+  const ptrack = document.getElementById('panel-tracking');
+  ptrack.innerHTML = '<div class="group" style="padding:12px 14px;color:var(--muted);font-size:11px;" id="trackingContent">Select tab to load…</div>';
+
+  // Run Pipeline panel
+  buildPipelinePanel();
+}
+
+/* Update computed display per block on any slider change */
+function updateComputed() {
+  document.querySelectorAll('#panel-curve .qblock').forEach(block => {
+    const rows = block.querySelectorAll('.row');
+    let hookRatio = 1, drop = 0.25, peakRatio = 2;
+    rows.forEach(row => {
+      const key = row.querySelector('[data-key]')?.dataset?.key || '';
+      const val = parseFloat(row.querySelector('input[type=number]')?.value) || 0;
+      if (key.endsWith('HOOK_RATIO')) hookRatio = val;
+      if (key.endsWith('VALLEY_DROP')) drop = val;
+      if (key.endsWith('PEAK_RATIO')) peakRatio = val;
+    });
+    const hook = baseReward * hookRatio;
+    const floor = hook * drop;
+    const peak = hook * peakRatio;
+    const comp = block.querySelector('.computed');
+    if (comp) comp.innerHTML = '<span>Hook: <em>' + hook.toFixed(1) + '</em> &nbsp; Valley floor: ' + floor.toFixed(2) + ' &nbsp; Peak: ' + peak.toFixed(1) + '</span>';
+  });
+}
+
+function hdr(title) {
+  const h = document.createElement('div'); h.className = 'group';
+  h.style.cssText = 'padding:6px 14px;border-bottom:1px solid var(--border);';
+  const h4 = document.createElement('h4'); h4.textContent = title; h4.style.margin = 0; h.appendChild(h4);
+  return h;
+}
+
+function buildFieldRow(f) {
+  const row = document.createElement('div'); row.className = 'row';
+  const lbl = document.createElement('label'); lbl.textContent = f.label; row.appendChild(lbl);
+  if (f.type === 'select') {
+    const sel = document.createElement('select'); sel.dataset.key = f.key;
+    if (f.options) f.options.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; sel.appendChild(opt); });
+    sel.value = f.default; sel.addEventListener('change', debouncePreview); row.appendChild(sel);
+  } else {
+    const inp = document.createElement('input'); inp.type = 'number'; inp.value = f.default;
+    inp.step = f.type === 'pct' ? '0.001' : '1'; inp.dataset.key = f.key; inp.style.width = '72px';
+    inp.addEventListener('input', debouncePreview); row.appendChild(inp);
+  }
+  row.appendChild(document.createTextNode(''));
+  return row;
+}
+
+function buildGateRow(s) {
+  const row = document.createElement('div'); row.className = 'row';
+  const lbl = document.createElement('label'); lbl.textContent = s.label; row.appendChild(lbl);
+  const slider = document.createElement('input'); slider.type = 'range';
+  slider.min = s.min; slider.max = s.max; slider.step = s.step;
+  slider.value = s.value ?? s.default; slider.dataset.key = s.key;
+  row.appendChild(slider);
+  const num = document.createElement('input'); num.type = 'number'; num.value = slider.value;
+  num.step = sliderStep(s.type); num.dataset.key = s.key; num.style.width = '60px';
+  slider.addEventListener('input', () => { num.value = slider.value; debouncePreview(); });
+  num.addEventListener('input', () => {
+    const v = parseUnfmt(num.value);
+    if (!isNaN(v) && v >= Number(s.min) && v <= Number(s.max)) slider.value = v;
+    debouncePreview();
+  });
+  num.addEventListener('blur', () => {
+    const v = parseUnfmt(num.value);
+    const clamped = Math.min(Number(s.max), Math.max(Number(s.min), isNaN(v) ? (s.value||s.default||0) : v));
+    num.value = fmtVal(s.type, clamped); slider.value = clamped; debouncePreview();
+  });
+  row.appendChild(num);
+  return row;
+}
+
+function buildRow(p, fullKey, value) {
+  const row = document.createElement('div'); row.className = 'row';
+  const lbl = document.createElement('label'); lbl.textContent = p.label; row.appendChild(lbl);
+
+  const slider = document.createElement('input'); slider.type = 'range';
+  slider.min = p.min; slider.max = p.max; slider.step = p.step;
+  slider.value = value ?? p.default;
+  slider.dataset.key = fullKey;
+  row.appendChild(slider);
+
+  const num = document.createElement('input'); num.type = 'number'; num.value = slider.value;
+  num.step = sliderStep(p.type); num.dataset.key = fullKey; num.style.width = '60px';
+
+  slider.addEventListener('input', () => { num.value = slider.value; debouncePreview(); });
+  num.addEventListener('input', () => {
+    const v = parseUnfmt(num.value);
+    if (!isNaN(v) && v >= Number(p.min) && v <= Number(p.max)) slider.value = v;
+    debouncePreview();
+  });
+  num.addEventListener('blur', () => {
+    const v = parseUnfmt(num.value);
+    const clamped = Math.min(Number(p.max), Math.max(Number(p.min), isNaN(v) ? (value||p.default||0) : v));
+    num.value = fmtVal(p.type, clamped); slider.value = clamped; debouncePreview();
+  });
+  row.appendChild(num);
+  return row;
+}
+
+/* Gather all inputs */
+function gatherAll() {
+  const test = {}, settings = {};
+  document.querySelectorAll('aside [data-key]').forEach(el => {
+    const key = el.dataset.key;
+    const isTest = testFields.some(f => f.key === key);
+    if (isTest) {
+      test[key] = (el.tagName === 'SELECT') ? el.value : (parseFloat(el.value) || 0);
+    } else {
+      settings[key] = el.value;
+    }
+  });
+  // Always include BASE_REWARD
+  if (!settings.BASE_REWARD) settings.BASE_REWARD = baseReward;
+  return { test, settings };
+}
+
+function debouncePreview() { clearTimeout(timer); timer = setTimeout(() => { fetchPreview(); }, 150); }
+
+async function fetchPreview() {
+  const { test, settings } = gatherAll();
+  updateComputed();
+  const params = new URLSearchParams(settings);
+  Object.entries(test).forEach(([k, v]) => params.set(k, v));
+  try {
+    const r = await fetch('/api/curve/preview?' + params.toString());
+    const data = await r.json();
+    renderChart(data);
+  } catch(e) { console.error(e); }
+}
+
+function renderChart(data) {
+  document.getElementById('sReach').textContent = data.scores.reach;
+  document.getElementById('sAdv').textContent = data.scores.advocacy;
+  document.getElementById('sPcu').textContent = data.scores.pcu;
+  document.getElementById('sQuad').textContent = data.quadrant;
+  const pen = document.getElementById('sPenalty');
+  if (data.penalty_factor != null) {
+    const pct = (data.penalty_factor * 100).toFixed(0);
+    const color = data.penalty_factor >= 0.8 ? 'var(--hook)' : data.penalty_factor >= 0.4 ? 'var(--valley)' : 'var(--surge)';
+    pen.innerHTML = ' Pen: <b style=\"color:' + color + '\">' + pct + '%</b>';
+    pen.title = (data.penalty_reasons || []).join('; ');
+  } else {
+    pen.textContent = 'Pen —';
+  }
+  document.getElementById('sTarget').textContent = 'Target: ' + data.scores.pcu;
+  document.getElementById('sSteps').textContent = data.step_count;
+  document.getElementById('sTotal').textContent = Number(data.total_budget).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('sAvg').textContent = (data.total_budget / data.step_count).toFixed(2);
+  const peak = data.milestones.reduce((max, m) => m.baseline > max ? m.baseline : max, 0);
+  document.getElementById('sPeak').textContent = peak.toFixed(2);
+
+  if (chart) chart.destroy();
+  const labels = data.milestones.map(m => m.step);
+  const pcuTarget = data.scores.pcu;
+
+  chart = new Chart(chartCtx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Baseline', data: data.milestones.map(m => m.baseline), backgroundColor: data.milestones.map(m => m.phase_color + '40'), borderColor: data.milestones.map(m => m.phase_color), borderWidth: 1.5, borderRadius: 3, order: 2 },
+        { label: 'After variable', data: data.milestones.map(m => m.variable), backgroundColor: data.milestones.map(m => m.phase_color + '99'), borderColor: data.milestones.map(m => m.phase_color), borderWidth: 1.5, borderRadius: 3, order: 1 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} (${data.milestones[ctx.dataIndex].phase})` } },
+        annotation: {
+          annotations: {
+            tline: { type: 'line', xMin: pcuTarget - 0.5, xMax: pcuTarget - 0.5, borderColor: '#ec4899', borderWidth: 2, borderDash: [6,4], label: { display: true, content: `Target: ${pcuTarget}`, position: 'start', backgroundColor: '#ec4899', color: '#fff', font: { size: 11, weight: 'bold' } } },
+          },
+        },
+      },
+      scales: {
+        x: { title: { display: true, text: 'Referral step', color: '#94a3b8' }, grid: { display: false } },
+        y: { title: { display: true, text: 'Reward', color: '#94a3b8' }, grid: { color: '#1e293b' }, ticks: { callback: v => v } },
+      },
+    },
+  });
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const { settings } = gatherAll();
+  try {
+    const r = await fetch('/api/curve/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+    const data = await r.json();
+    const btn = document.getElementById('saveBtn');
+    if (data.ok) { btn.textContent = 'Saved'; btn.classList.add('saved'); setTimeout(() => { btn.textContent = 'Save to .env'; btn.classList.remove('saved'); }, 2000); }
+    else { alert('Failed: ' + (data.error || 'unknown')); }
+  } catch(e) { alert('Save error: ' + e.message); }
+});
+
+/* Saved Curves tab */
+async function loadSavedCurves() {
+  const el = document.getElementById('savedContent');
+  try {
+    const r = await fetch('/api/curves/list');
+    const data = await r.json();
+    const curves = data.curves || [];
+    if (!curves.length) {
+      el.innerHTML = '<span style="color:var(--dim)">No saved curves yet. Run a pipeline analysis to save curves.</span>';
+      return;
+    }
+    let html = '<div style="font-size:10px;color:var(--dim);margin-bottom:8px">' + curves.length + ' saved curves</div>';
+    curves.forEach(c => {
+      const color = QC[c.archetype] || '#6b7280';
+      const budget = c.should_ask ? c.total_budget.toFixed(2) : 'held';
+      html += '<div style="padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:10px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">';
+      html += '<span style="color:' + color + ';font-weight:600">' + c.archetype + '</span> ';
+      html += '<span style="color:var(--muted)">' + c.user_id + '</span> ';
+      html += '<span style="color:var(--text)">R:' + c.reach_score + ' A:' + c.advocacy_score + ' PCU:' + c.pcu + '</span> ';
+      if (c.should_ask) html += '<span style="color:var(--text);float:right">' + budget + ' / ' + c.step_count + ' steps</span>';
+      else html += '<span style="color:#ef4444;float:right">HELD</span>';
+      html += '</div>';
+      html += '<div style="display:none;padding:4px 8px;font-size:9px;color:var(--dim);line-height:1.6">';
+      html += 'Urgency: ' + c.urgency.toFixed(2) + ' | Channel: ' + (c.channel||'-') + ' | Tone: ' + (c.tone||'-') + '<br>';
+      html += 'Generated: ' + (c.generated_at||'-') + '<br>';
+      html += 'Base reward: ' + c.base_reward;
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<span style="color:#ef4444">Failed to load: ' + e.message + '</span>';
+  }
+}
+
+/* User Tracking tab */
+let _trackingState = { search: '', archetype: '', status: '' };
+
+async function loadUserTracking() {
+  const el = document.getElementById('trackingContent');
+  if (!el) return;
+
+  const existingSearch = el.querySelector('input[type=text]');
+  if (existingSearch) _trackingState.search = existingSearch.value;
+  const existingSelects = el.querySelectorAll('select');
+  if (existingSelects.length >= 2) {
+    _trackingState.archetype = existingSelects[0].value;
+    _trackingState.status = existingSelects[1].value;
+  }
+
+  el.innerHTML = '<div style="padding:10px;color:var(--dim);font-size:10px;text-align:center">Loading…</div>';
+  try {
+    const qs = new URLSearchParams();
+    if (_trackingState.archetype) qs.set('archetype', _trackingState.archetype);
+    if (_trackingState.status) qs.set('status', _trackingState.status);
+    if (_trackingState.search) qs.set('search', _trackingState.search);
+    const r = await fetch('/api/user/progress?' + qs.toString());
+    const data = await r.json();
+    renderTrackingTable(data);
+  } catch(e) {
+    el.innerHTML = buildTrackingHeader() + '<div class="empty-tracking">Failed: ' + esc2(e.message) + '</div>';
+    restoreFilterValues();
+  }
+}
+
+function buildTrackingHeader() {
+  return '<div class="track-filters">'
+    + '<input type="text" id="trackSearch" placeholder="Search user_id…" oninput="onTrackingFilterChange()">'
+    + '<select id="trackArchetype" onchange="onTrackingFilterChange()">'
+      + '<option value="">All archetypes</option>'
+      + '<option value="Influencer">Influencer</option>'
+      + '<option value="Broadcaster">Broadcaster</option>'
+      + '<option value="Fan">Fan</option>'
+      + '<option value="Newcomer">Newcomer</option>'
+    + '</select>'
+    + '<select id="trackStatus" onchange="onTrackingFilterChange()">'
+      + '<option value="">All status</option>'
+      + '<option value="active">Active</option>'
+      + '<option value="completed">Completed</option>'
+    + '</select>'
+    + '<button class="refresh-btn" onclick="loadUserTracking()">Refresh</button>'
+    + '</div>';
+}
+
+function renderTrackingTable(data) {
+  const el = document.getElementById('trackingContent');
+  let html = buildTrackingHeader();
+  if (!data || !data.length) {
+    html += '<div class="empty-tracking">No users tracked yet. Run pipeline and confirm referrals.</div>';
+    el.innerHTML = html;
+    restoreFilterValues();
+    return;
+  }
+  html += '<div style="font-size:9px;color:var(--dim);padding:4px 10px">' + data.length + ' users</div>';
+  html += '<table class="track-table"><thead><tr>'
+    + '<th>User</th><th>Label</th><th>Type</th><th>Referrals</th><th>Earned</th><th>Pen</th><th>+1</th>'
+    + '</tr></thead><tbody>';
+  data.forEach(p => {
+    const color = QC[p.archetype] || '#6b7280';
+    const pct = p.referrals_target > 0 ? Math.min(100, (p.referrals_completed / p.referrals_target) * 100) : 0;
+    const barColor = pct >= 80 ? 'var(--accent)' : pct >= 30 ? 'var(--primary)' : 'var(--border)';
+    html += '<tr class="track-row" onclick="toggleDetail(\'' + esc2(p.user_id) + '\')" data-uid="' + esc2(p.user_id) + '">';
+    html += '<td class="uid" title="' + esc2(p.user_id) + '">' + esc2(p.user_id) + '</td>';
+    html += '<td style="color:var(--text)">' + esc2(p.friendly_label) + '</td>';
+    html += '<td style="color:' + color + '">' + esc2(p.archetype) + '</td>';
+    html += '<td class="progress-cell"><div class="mini-bar"><div class="mini-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>'
+      + '<span style="font-size:9px;color:var(--dim)">' + p.referrals_completed + '/' + p.referrals_target + '</span></td>';
+    html += '<td style="color:var(--text);font-variant-numeric:tabular-nums">' + Number(p.total_earned).toFixed(0) + '</td>';
+    html += '<td style="color:var(--muted);font-size:9px">' + (p.penalty_factor*100).toFixed(0) + '%</td>';
+    html += '<td><button class="bump-btn" onclick="event.stopPropagation();manualBump(\'' + esc2(p.user_id) + '\')" title="Manual +1 referral">+1</button></td>';
+    html += '</tr>';
+    html += '<tr class="detail-row" id="detail-' + esc2(p.user_id) + '"><td colspan="7">'
+      + '<div style="text-align:center;color:var(--dim);font-size:10px">Loading details…</div>'
+      + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+  restoreFilterValues();
+}
+
+function onTrackingFilterChange() {
+  const searchEl = document.getElementById('trackSearch');
+  const archEl = document.getElementById('trackArchetype');
+  const statusEl = document.getElementById('trackStatus');
+  _trackingState.search = searchEl ? searchEl.value : '';
+  _trackingState.archetype = archEl ? archEl.value : '';
+  _trackingState.status = statusEl ? statusEl.value : '';
+  loadUserTracking();
+}
+
+function restoreFilterValues() {
+  const searchEl = document.getElementById('trackSearch');
+  const archEl = document.getElementById('trackArchetype');
+  const statusEl = document.getElementById('trackStatus');
+  if (searchEl) searchEl.value = _trackingState.search;
+  if (archEl) archEl.value = _trackingState.archetype;
+  if (statusEl) statusEl.value = _trackingState.status;
+}
+
+function renderTrackingTable(data) {
+  const el = document.getElementById('trackingContent');
+  let html = buildTrackingHeader();
+  if (!data || !data.length) {
+    html += '<div class="empty-tracking">No users tracked yet. Run pipeline and confirm referrals.</div>';
+    el.innerHTML = html;
+    return;
+  }
+  html += '<div class="trackingRows">';
+  html += '<div style="font-size:9px;color:var(--dim);padding:4px 10px">' + data.length + ' users</div>';
+  html += '<table class="track-table"><thead><tr>'
+    + '<th>User</th><th>Label</th><th>Type</th><th>Referrals</th><th>Earned</th><th>Pen</th><th>+1</th>'
+    + '</tr></thead><tbody>';
+  data.forEach(p => {
+    const color = QC[p.archetype] || '#6b7280';
+    const pct = p.referrals_target > 0 ? Math.min(100, (p.referrals_completed / p.referrals_target) * 100) : 0;
+    const barColor = pct >= 80 ? 'var(--accent)' : pct >= 30 ? 'var(--primary)' : 'var(--border)';
+    html += '<tr class="track-row" onclick="toggleDetail(\'' + esc2(p.user_id) + '\')" data-uid="' + esc2(p.user_id) + '">';
+    html += '<td class="uid" title="' + esc2(p.user_id) + '">' + esc2(p.user_id) + '</td>';
+    html += '<td style="color:var(--text)">' + esc2(p.friendly_label) + '</td>';
+    html += '<td style="color:' + color + '">' + esc2(p.archetype) + '</td>';
+    html += '<td class="progress-cell"><div class="mini-bar"><div class="mini-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>'
+      + '<span style="font-size:9px;color:var(--dim)">' + p.referrals_completed + '/' + p.referrals_target + '</span></td>';
+    html += '<td style="color:var(--text);font-variant-numeric:tabular-nums">' + Number(p.total_earned).toFixed(0) + '</td>';
+    html += '<td style="color:var(--muted);font-size:9px">' + (p.penalty_factor*100).toFixed(0) + '%</td>';
+    html += '<td><button class="bump-btn" onclick="event.stopPropagation();manualBump(\'' + esc2(p.user_id) + '\')" title="Manual +1 referral">+1</button></td>';
+    html += '</tr>';
+    html += '<tr class="detail-row" id="detail-' + esc2(p.user_id) + '"><td colspan="7">'
+      + '<div style="text-align:center;color:var(--dim);font-size:10px">Loading details…</div>'
+      + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+const _detailCache = {};
+
+async function toggleDetail(uid) {
+  const row = document.getElementById('detail-' + uid);
+  if (!row) return;
+  if (row.style.display === 'table-row') {
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'table-row';
+  if (_detailCache[uid]) { row.innerHTML = '<td colspan="7">' + _detailCache[uid] + '</td>'; return; }
+  try {
+    const [progRes, histRes, curveRes] = await Promise.all([
+      fetch('/api/user/' + uid + '/status'),
+      fetch('/api/user/' + uid + '/referrals'),
+      fetch('/v1/referral/curves/' + uid),
+    ]);
+    const prog = progRes.ok ? await progRes.json() : null;
+    const hist = histRes.ok ? await histRes.json() : null;
+    const curve = curveRes.ok ? await curveRes.json() : null;
+    const html = buildDetail(uid, prog, hist, curve);
+    _detailCache[uid] = html;
+    row.innerHTML = '<td colspan="7">' + html + '</td>';
+  } catch(e) {
+    row.innerHTML = '<td colspan="7"><span style="color:#ef4444">Error loading details</span></td>';
+  }
+}
+
+function buildDetail(uid, prog, hist, curve) {
+  let html = '<div class="detail-grid">';
+
+  html += '<div><h5>Curve Milestones</h5><div class="detail-curve">';
+  if (curve && curve.milestones) {
+    const currentStep = prog ? prog.referrals_completed : 0;
+    const stepsToShow = curve.milestones.slice(0, 20);
+    stepsToShow.forEach(m => {
+      const active = m.step === currentStep + 1 ? ' active' : '';
+      const past = m.step <= currentStep ? 'opacity:0.4' : '';
+      html += '<div class="step-row' + active + '" style="' + past + '">';
+      html += '<span class="snum">' + m.step + '</span>';
+      html += '<span class="srew">' + (m.baseline_reward||0).toFixed(1) + '</span>';
+      const pc = {'hook':'#10b981','valley':'#f59e0b','surge':'#ef4444','plateau':'#8b5cf6'};
+      html += '<span class="sphase" style="background:' + (pc[m.phase]||'#6b7280') + '22;color:' + (pc[m.phase]||'#6b7280') + '">' + (m.phase||'') + '</span>';
+      if (m.step === currentStep + 1) html += '<span style="font-size:8px;color:var(--primary)">← next</span>';
+      html += '</div>';
+    });
+    if (curve.milestones.length > 20) html += '<div style="color:var(--dim);font-size:9px;padding:4px">…+' + (curve.milestones.length - 20) + ' more steps</div>';
+  } else {
+    html += '<span style="color:var(--dim)">No curve data</span>';
+  }
+  html += '</div></div>';
+
+  html += '<div><h5>Referral History</h5><div class="detail-hist">';
+  if (hist && hist.history && hist.history.length) {
+    hist.history.slice(0, 20).forEach(h => {
+      html += '<div class="hist-item">' + (h.timestamp||'').slice(0,10) + ' +' + (h.count||1) + ' referral' + (h.count>1?'s':'') + '</div>';
+    });
+    if (hist.history.length > 20) html += '<div style="color:var(--dim)">…+' + (hist.history.length - 20) + ' more</div>';
+  } else {
+    html += '<span style="color:var(--dim)">No referrals confirmed yet</span>';
+  }
+  html += '</div></div>';
+
+  html += '</div>';
+  if (prog) {
+    html += '<div style="margin-top:8px;font-size:9px;color:var(--dim)">'
+      + 'Status: <span style="color:' + (prog.status==='active'?'var(--accent)':'var(--danger)') + '">' + esc2(prog.status) + '</span>'
+      + ' | Step: ' + prog.current_step
+      + ' | Unit: ' + esc2(prog.reward_unit)
+      + ' | Updated: ' + (prog.updated_at||'').slice(0,16)
+      + '</div>';
+  }
+  return html;
+}
+
+async function manualBump(uid) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const r = await fetch('/v1/referral/confirm/' + uid, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({count: 1, timestamp: new Date().toISOString()}),
+    });
+    if (r.ok) {
+      delete _detailCache[uid];
+      loadUserTracking();
+    } else {
+      const err = await r.json();
+      btn.textContent = 'dup';
+      setTimeout(() => { btn.textContent = '+1'; btn.disabled = false; }, 2000);
+    }
+  } catch(e) {
+    btn.textContent = 'err';
+    setTimeout(() => { btn.textContent = '+1'; btn.disabled = false; }, 2000);
+  }
+}
+function esc2(s) { return String(s||'').replace(/[<>&]/g,''); }
+
+/* Run Pipeline tab */
+function buildPipelinePanel() {
+  const el = document.getElementById('panel-pipeline');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="pipe-disclaimer">
+      <b>Production note:</b> In production, user data is ingested from PostgreSQL
+      and enriched via Twitter/X social API. The pipeline below uses
+      manually-entered or auto-generated data for local testing and debugging.
+    </div>
+    <div class="pipe-form" id="pipeForm">
+      <div class="field"><label>User ID</label><input id="puid" type="text" value="demo_user_01" style="font-weight:600;color:var(--primary)"></div>
+      <div class="field"><label>Twitter followers</label><input id="pfollowers" type="number" value="2500" min="0"></div>
+      <div class="field"><label>Engagement rate</label><input id="pengage" type="number" value="0.045" min="0" max="1" step="0.001"></div>
+      <div class="field"><label>Twitter following</label><input id="pfollowing" type="number" value="800" min="0"></div>
+      <div class="field"><label>Account age (days)</label><input id="page" type="number" value="420" min="0"></div>
+      <div class="field"><label>Sessions (90d)</label><input id="psessions" type="number" value="75" min="0"></div>
+      <div class="field"><label>Features adopted</label><input id="pfeatures" type="number" value="7" min="0"></div>
+      <div class="field"><label>Positive outcomes</label><input id="poutcomes" type="number" value="12" min="0"></div>
+      <div class="field"><label>Support tickets (90d)</label><input id="ptickets" type="number" value="1" min="0"></div>
+      <div class="field"><label>Tickets resolved</label><input id="presolved" type="number" value="1" min="0"></div>
+      <div class="field"><label>Activity trend</label><select id="ptrend"><option value="rising">rising</option><option value="stable" selected>stable</option><option value="declining">declining</option></select></div>
+    </div>
+    <div class="pipe-btn-row">
+      <button class="gen-btn" onclick="generateRandomUser()">🎲 Generate Random</button>
+      <button class="run-btn" id="runBtn" onclick="runPipeline()">▶ Run Pipeline</button>
+    </div>
+    <div class="pipe-result" id="pipeResult"></div>
+  `;
+}
+
+function generateRandomUser() {
+  const archetypes = [
+    { name: 'Influencer', f: 5000, e: 0.07, fn: 2000, a: 800, s: 120, fe: 12, o: 30, t: 1, r: 1, tr: 'rising' },
+    { name: 'Broadcaster', f: 8000, e: 0.12, fn: 5000, a: 200, s: 30, fe: 3, o: 5, t: 4, r: 2, tr: 'stable' },
+    { name: 'Fan', f: 200, e: 0.02, fn: 400, a: 600, s: 150, fe: 10, o: 25, t: 0, r: 0, tr: 'rising' },
+    { name: 'Newcomer', f: 50, e: 0.005, fn: 100, a: 14, s: 5, fe: 1, o: 2, t: 3, r: 1, tr: 'declining' },
+  ];
+  const a = archetypes[Math.floor(Math.random() * archetypes.length)];
+  const jitter = (v, pct) => Math.max(0, Math.round(v * (1 + (Math.random() - 0.5) * pct * 2)));
+  const jFloat = (v, pct) => Math.max(0, +(v * (1 + (Math.random() - 0.5) * pct * 2)).toFixed(4));
+  document.getElementById('puid').value = 'demo_' + a.name.toLowerCase() + '_' + Date.now().toString(36);
+  document.getElementById('pfollowers').value = jitter(a.f, 0.4);
+  document.getElementById('pengage').value = jFloat(a.e, 0.3);
+  document.getElementById('pfollowing').value = jitter(a.fn, 0.5);
+  document.getElementById('page').value = jitter(a.a, 0.3);
+  document.getElementById('psessions').value = jitter(a.s, 0.4);
+  document.getElementById('pfeatures').value = jitter(a.fe, 0.3);
+  document.getElementById('poutcomes').value = jitter(a.o, 0.4);
+  document.getElementById('ptickets').value = jitter(a.t, 0.5);
+  document.getElementById('presolved').value = a.r >= a.t ? a.t : jitter(a.r, 0.3);
+  document.getElementById('ptrend').value = a.tr;
+}
+
+async function runPipeline() {
+  const btn = document.getElementById('runBtn');
+  const res = document.getElementById('pipeResult');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+
+  const uid = document.getElementById('puid').value || 'demo_user';
+  const payload = {
+    user_id: uid,
+    data: {
+      profile: {
+        twitter_followers: Number(document.getElementById('pfollowers').value) || 0,
+        twitter_engagement_rate: Number(document.getElementById('pengage').value) || 0,
+        twitter_following: Number(document.getElementById('pfollowing').value) || 0,
+        account_age_days: Number(document.getElementById('page').value) || 0,
+        total_product_sessions_90d: Number(document.getElementById('psessions').value) || 0,
+        feature_adoption_count: Number(document.getElementById('pfeatures').value) || 0,
+        positive_outcome_events: Number(document.getElementById('poutcomes').value) || 0,
+        support_tickets_90d: Number(document.getElementById('ptickets').value) || 0,
+        support_tickets_resolved: Number(document.getElementById('presolved').value) || 0,
+        recent_activity_trend: document.getElementById('ptrend').value,
+      },
+    },
+  };
+
+  try {
+    const r = await fetch('/v1/referral/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const job = await r.json();
+    if (job.job_id) {
+      renderAgentFlow({ job_id: job.job_id, status: 'queued', agent_status: [] });
+      pollJob(job.job_id, uid, Date.now());
+    } else {
+      res.innerHTML = '<div class="res-err">Failed: ' + JSON.stringify(job) + '</div>';
+      btn.disabled = false;
+      btn.textContent = '▶ Run Pipeline';
+    }
+  } catch(e) {
+    res.innerHTML = '<div class="res-err">Error: ' + e.message + '</div>';
+    btn.disabled = false;
+    btn.textContent = '▶ Run Pipeline';
+  }
+}
+
+async function pollJob(jobId, uid, started) {
+  const res = document.getElementById('pipeResult');
+  for (let i = 0; i < 80; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 1500));
+    try {
+      const r = await fetch('/v1/referral/results/' + jobId);
+      const d = await r.json();
+      const elapsed = Math.floor((Date.now() - started) / 1000);
+      if (d.status === 'completed' || d.status === 'failed') {
+        renderPipelineResult(d, uid);
+        document.getElementById('runBtn').disabled = false;
+        document.getElementById('runBtn').textContent = '▶ Run Pipeline';
+        return;
+      }
+      renderAgentFlow(d, elapsed);
+    } catch(e) {
+      res.innerHTML += '<div style="font-size:9px;color:var(--surge);margin-top:2px">Retry ' + (i+1) + '…</div>';
+    }
+  }
+  res.innerHTML += '<div class="res-err">Pipeline timed out (120s)</div>';
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('runBtn').textContent = '▶ Run Pipeline';
+}
+
+function renderAgentFlow(d, elapsed) {
+  const agents = [
+    { id: 1, name: 'Signal Parser', desc: 'Ingest & normalize user data' },
+    { id: 2, name: 'Score Calculator', desc: 'Compute Reach, Advocacy, PCU, Tier' },
+    { id: 3, name: 'Ask Orchestrator', desc: 'Evaluate gates & penalty factor' },
+    { id: 4, name: 'Curve Designer', desc: 'Design 4-phase reward curve' },
+  ];
+
+  const statusMap = {};
+  (d.agent_status || []).forEach(s => { statusMap[s.agent] = s.status; });
+
+  let html = '<div class="res-box" style="margin-bottom:4px">';
+  html += '<div class="res-row"><span class="rlbl">Job</span><span class="rval" style="font-size:9px">' + esc2(d.job_id||'') + '</span></div>';
+  html += '<div class="res-row"><span class="rlbl">Status</span><span class="rval" style="color:var(--valley)">' + esc2(d.status) + '</span></div>';
+  if (elapsed != null) html += '<div class="res-row"><span class="rlbl">Elapsed</span><span class="rval">' + elapsed + 's</span></div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:3px">';
+  agents.forEach((a, idx) => {
+    const st = statusMap[a.name] || 'waiting';
+    const icon = st === 'done' ? '✓' : st === 'running' ? '⟳' : '○';
+    const color = st === 'done' ? 'var(--accent)' : st === 'running' ? 'var(--primary)' : 'var(--dim)';
+    const bg = st === 'done' ? 'rgba(16,185,129,0.08)' : st === 'running' ? 'rgba(59,130,246,0.08)' : 'transparent';
+    const anim = st === 'running' ? 'animation: spin 1.2s linear infinite;' : '';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;background:' + bg + ';border:1px solid ' + (st==='done'?'rgba(16,185,129,0.2)':st==='running'?'rgba(59,130,246,0.2)':'var(--border)') + '">';
+    html += '<span style="font-size:14px;color:' + color + ';' + anim + ';display:inline-block;width:20px;text-align:center">' + icon + '</span>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:10px;font-weight:600;color:' + color + '">' + a.name + '</div>';
+    html += '<div style="font-size:8px;color:var(--dim)">' + a.desc + '</div>';
+    html += '</div>';
+    html += '<span style="font-size:8px;color:' + color + ';font-weight:600">' + st.toUpperCase() + '</span>';
+    html += '</div>';
+    if (idx < 3) {
+      const connColor = statusMap[agents[idx+1].name] === 'running' || statusMap[a.name] === 'done' ? 'var(--primary)' : 'var(--dim)';
+      html += '<div style="width:1px;height:6px;background:' + connColor + ';margin-left:17px"></div>';
+    }
+  });
+  html += '</div>';
+
+  document.getElementById('pipeResult').innerHTML = html;
+}
+  } catch(e) {
+    res.innerHTML = '<div class="res-err">Error: ' + e.message + '</div>';
+    btn.disabled = false;
+    btn.textContent = '▶ Run Pipeline';
+  }
+}
+
+async function pollJob(jobId, uid) {
+  const res = document.getElementById('pipeResult');
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      const r = await fetch('/v1/referral/results/' + jobId);
+      const d = await r.json();
+      if (d.status === 'completed' || d.status === 'failed') {
+        renderPipelineResult(d, uid);
+        document.getElementById('runBtn').disabled = false;
+        document.getElementById('runBtn').textContent = '▶ Run Pipeline';
+        return;
+      }
+      renderAgentFlow(d);
+    } catch(e) { /* retry */ }
+  }
+  res.innerHTML = '<div class="res-err">Pipeline timed out (120s)</div>';
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('runBtn').textContent = '▶ Run Pipeline';
+}
+
+function renderAgentFlow(d) {
+  const agents = [
+    { id: 1, name: 'Signal Parser', desc: 'Ingest & normalize user data' },
+    { id: 2, name: 'Score Calculator', desc: 'Compute Reach, Advocacy, PCU, Tier' },
+    { id: 3, name: 'Ask Orchestrator', desc: 'Evaluate gates & penalty factor' },
+    { id: 4, name: 'Curve Designer', desc: 'Design 4-phase reward curve' },
+  ];
+
+  const statusMap = {};
+  (d.agent_status || []).forEach(s => { statusMap[s.agent] = s.status; });
+
+  let html = '<div class="res-box" style="margin-bottom:4px">';
+  html += '<div class="res-row"><span class="rlbl">Job</span><span class="rval" style="font-size:9px">' + esc2(d.job_id||'') + '</span></div>';
+  html += '<div class="res-row"><span class="rlbl">Overall</span><span class="rval" style="color:var(--valley)">' + esc2(d.status) + '</span></div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:3px">';
+  agents.forEach((a, idx) => {
+    const st = statusMap[a.name] || 'waiting';
+    const icon = st === 'done' ? '✓' : st === 'running' ? '⟳' : '○';
+    const color = st === 'done' ? 'var(--accent)' : st === 'running' ? 'var(--primary)' : 'var(--dim)';
+    const bg = st === 'done' ? 'rgba(16,185,129,0.08)' : st === 'running' ? 'rgba(59,130,246,0.08)' : 'transparent';
+    const anim = st === 'running' ? 'animation: spin 1.2s linear infinite;' : '';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;background:' + bg + ';border:1px solid ' + (st==='done'?'rgba(16,185,129,0.2)':st==='running'?'rgba(59,130,246,0.2)':'var(--border)') + '">';
+    html += '<span style="font-size:14px;color:' + color + ';' + anim + ';display:inline-block;width:20px;text-align:center">' + icon + '</span>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:10px;font-weight:600;color:' + color + '">' + a.name + '</div>';
+    html += '<div style="font-size:8px;color:var(--dim)">' + a.desc + '</div>';
+    html += '</div>';
+    html += '<span style="font-size:8px;color:' + color + ';font-weight:600">' + st.toUpperCase() + '</span>';
+    html += '</div>';
+    if (idx < 3) {
+      const connColor = statusMap[agents[idx+1].name] === 'running' || statusMap[a.name] === 'done' ? 'var(--primary)' : 'var(--dim)';
+      html += '<div style="width:1px;height:6px;background:' + connColor + ';margin-left:17px"></div>';
+    }
+  });
+  html += '</div>';
+
+  document.getElementById('pipeResult').innerHTML = html;
+}
+
+function renderPipelineResult(d, uid) {
+  const res = document.getElementById('pipeResult');
+  if (d.status === 'failed') {
+    res.innerHTML = '<div class="res-err"><b>Pipeline failed:</b> ' + esc2(d.error || 'unknown') + '</div>';
+    return;
+  }
+  const pen = d.penalty_factor != null ? (d.penalty_factor * 100).toFixed(0) + '%' : '—';
+  renderAgentFlow(d);
+  let extra = `
+    <div class="res-box" style="margin-top:6px">
+      <div class="res-row"><span class="rlbl">User</span><span class="rval">${esc2(uid)}</span></div>
+      <div class="res-row"><span class="rlbl">Status</span><span class="rval" style="color:var(--accent)">${esc2(d.status)}</span></div>
+      <div class="res-row"><span class="rlbl">Reach</span><span class="rval">${d.reach_score != null ? d.reach_score : '—'}</span></div>
+      <div class="res-row"><span class="rlbl">Advocacy</span><span class="rval">${d.advocacy_score != null ? d.advocacy_score : '—'}</span></div>
+      <div class="res-row"><span class="rlbl">Penalty</span><span class="rval">${pen}</span></div>
+      <div class="res-row"><span class="rlbl">Urgency</span><span class="rval">${d.urgency != null ? d.urgency.toFixed(2) : '—'}</span></div>
+    </div>
+    <div style="display:flex;gap:2px;margin-top:4px">
+      <button style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:4px;padding:4px 0;font-size:10px;cursor:pointer" onclick="document.querySelector('[data-tab=tracking]').click()">View in Tracking</button>
+      <button style="flex:1;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:4px 0;font-size:10px;cursor:pointer" onclick="window.open('/user/${uid}','_blank')">Open User View</button>
+    </div>
+  `;
+  document.getElementById('pipeResult').innerHTML += extra;
+}
+
+(async () => {
+  const r = await fetch('/api/curve/config');
+  buildPanels(await r.json());
+  updateComputed();
+  fetchPreview();
+})();
+</script>
+</body>
+</html>

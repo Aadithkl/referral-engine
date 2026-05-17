@@ -1,0 +1,222 @@
+[
+  {
+    "user_id": "user_inf_01",
+    "label": "Power Influencer",
+    "profile": {
+      "twitter_followers": 80000, "twitter_engagement_rate": 0.08,
+      "twitter_following": 2000, "account_age_days": 900,
+      "total_product_sessions_90d": 200, "feature_adoption_count": 15,
+      "positive_outcome_events": 30, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_inf_02",
+    "label": "Solid Influencer",
+    "profile": {
+      "twitter_followers": 5000, "twitter_engagement_rate": 0.052,
+      "twitter_following": 1200, "account_age_days": 607,
+      "total_product_sessions_90d": 95, "feature_adoption_count": 8,
+      "positive_outcome_events": 15, "support_tickets_90d": 1,
+      "support_tickets_resolved": 1, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_inf_03",
+    "label": "Mid-tier Influencer",
+    "profile": {
+      "twitter_followers": 20000, "twitter_engagement_rate": 0.07,
+      "twitter_following": 800, "account_age_days": 1100,
+      "total_product_sessions_90d": 150, "feature_adoption_count": 12,
+      "positive_outcome_events": 25, "support_tickets_90d": 1,
+      "support_tickets_resolved": 1, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_inf_04",
+    "label": "Influencer edge (borderline)",
+    "profile": {
+      "twitter_followers": 1800, "twitter_engagement_rate": 0.015,
+      "twitter_following": 600, "account_age_days": 400,
+      "total_product_sessions_90d": 52, "feature_adoption_count": 5,
+      "positive_outcome_events": 8, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_bdc_01",
+    "label": "Big Broadcaster",
+    "profile": {
+      "twitter_followers": 50000, "twitter_engagement_rate": 0.07,
+      "twitter_following": 500, "account_age_days": 800,
+      "total_product_sessions_90d": 25, "feature_adoption_count": 3,
+      "positive_outcome_events": 5, "support_tickets_90d": 4,
+      "support_tickets_resolved": 1, "recent_activity_trend": "declining"
+    }
+  },
+  {
+    "user_id": "user_bdc_02",
+    "label": "Famous but unattached",
+    "profile": {
+      "twitter_followers": 15000, "twitter_engagement_rate": 0.04,
+      "twitter_following": 300, "account_age_days": 906,
+      "total_product_sessions_90d": 22, "feature_adoption_count": 3,
+      "positive_outcome_events": 5, "support_tickets_90d": 3,
+      "support_tickets_resolved": 1, "recent_activity_trend": "declining"
+    }
+  },
+  {
+    "user_id": "user_bdc_03",
+    "label": "New Broadcaster",
+    "profile": {
+      "twitter_followers": 3000, "twitter_engagement_rate": 0.05,
+      "twitter_following": 700, "account_age_days": 200,
+      "total_product_sessions_90d": 10, "feature_adoption_count": 2,
+      "positive_outcome_events": 2, "support_tickets_90d": 2,
+      "support_tickets_resolved": 0, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_bdc_04",
+    "label": "Broadcaster edge",
+    "profile": {
+      "twitter_followers": 2200, "twitter_engagement_rate": 0.012,
+      "twitter_following": 500, "account_age_days": 150,
+      "total_product_sessions_90d": 35, "feature_adoption_count": 3,
+      "positive_outcome_events": 4, "support_tickets_90d": 1,
+      "support_tickets_resolved": 1, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_fan_01",
+    "label": "Super Fan",
+    "profile": {
+      "twitter_followers": 400, "twitter_engagement_rate": 0.006,
+      "twitter_following": 80, "account_age_days": 700,
+      "total_product_sessions_90d": 140, "feature_adoption_count": 10,
+      "positive_outcome_events": 20, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_fan_02",
+    "label": "Loyal Fan",
+    "profile": {
+      "twitter_followers": 10, "twitter_engagement_rate": 0.005,
+      "twitter_following": 100, "account_age_days": 620,
+      "total_product_sessions_90d": 72, "feature_adoption_count": 6,
+      "positive_outcome_events": 9, "support_tickets_90d": 2,
+      "support_tickets_resolved": 2, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_fan_03",
+    "label": "Quiet Advocate",
+    "profile": {
+      "twitter_followers": 800, "twitter_engagement_rate": 0.008,
+      "twitter_following": 200, "account_age_days": 500,
+      "total_product_sessions_90d": 90, "feature_adoption_count": 8,
+      "positive_outcome_events": 14, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_fan_04",
+    "label": "Fan edge (borderline)",
+    "profile": {
+      "twitter_followers": 1200, "twitter_engagement_rate": 0.005,
+      "twitter_following": 300, "account_age_days": 350,
+      "total_product_sessions_90d": 48, "feature_adoption_count": 4,
+      "positive_outcome_events": 6, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_new_01",
+    "label": "Fresh Newcomer",
+    "profile": {
+      "twitter_followers": 0, "twitter_engagement_rate": 0.0,
+      "twitter_following": 0, "account_age_days": 14,
+      "total_product_sessions_90d": 5, "feature_adoption_count": 1,
+      "positive_outcome_events": 0, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_new_02",
+    "label": "Casual User",
+    "profile": {
+      "twitter_followers": 200, "twitter_engagement_rate": 0.003,
+      "twitter_following": 150, "account_age_days": 60,
+      "total_product_sessions_90d": 15, "feature_adoption_count": 2,
+      "positive_outcome_events": 1, "support_tickets_90d": 1,
+      "support_tickets_resolved": 0, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_new_03",
+    "label": "Declining User",
+    "profile": {
+      "twitter_followers": 30, "twitter_engagement_rate": 0.004,
+      "twitter_following": 200, "account_age_days": 860,
+      "total_product_sessions_90d": 4, "feature_adoption_count": 1,
+      "positive_outcome_events": 0, "support_tickets_90d": 2,
+      "support_tickets_resolved": 0, "recent_activity_trend": "declining"
+    }
+  },
+  {
+    "user_id": "user_new_04",
+    "label": "Inactive Sharer",
+    "profile": {
+      "twitter_followers": 15, "twitter_engagement_rate": 0.008,
+      "twitter_following": 120, "account_age_days": 347,
+      "total_product_sessions_90d": 35, "feature_adoption_count": 4,
+      "positive_outcome_events": 4, "support_tickets_90d": 1,
+      "support_tickets_resolved": 1, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_edge_01",
+    "label": "Exact split edge (reach=50)",
+    "profile": {
+      "twitter_followers": 750, "twitter_engagement_rate": 0.008,
+      "twitter_following": 500, "account_age_days": 300,
+      "total_product_sessions_90d": 30, "feature_adoption_count": 3,
+      "positive_outcome_events": 3, "support_tickets_90d": 1,
+      "support_tickets_resolved": 1, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_edge_02",
+    "label": "Exact split edge (adv=50)",
+    "profile": {
+      "twitter_followers": 400, "twitter_engagement_rate": 0.004,
+      "twitter_following": 200, "account_age_days": 400,
+      "total_product_sessions_90d": 48, "feature_adoption_count": 5,
+      "positive_outcome_events": 5, "support_tickets_90d": 2,
+      "support_tickets_resolved": 2, "recent_activity_trend": "stable"
+    }
+  },
+  {
+    "user_id": "user_high_01",
+    "label": "Whale Influencer",
+    "profile": {
+      "twitter_followers": 250000, "twitter_engagement_rate": 0.10,
+      "twitter_following": 5000, "account_age_days": 1500,
+      "total_product_sessions_90d": 300, "feature_adoption_count": 20,
+      "positive_outcome_events": 50, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "rising"
+    }
+  },
+  {
+    "user_id": "user_low_01",
+    "label": "Minimum viable user",
+    "profile": {
+      "twitter_followers": 1, "twitter_engagement_rate": 0.001,
+      "twitter_following": 1, "account_age_days": 15,
+      "total_product_sessions_90d": 1, "feature_adoption_count": 0,
+      "positive_outcome_events": 0, "support_tickets_90d": 0,
+      "support_tickets_resolved": 0, "recent_activity_trend": "stable"
+    }
+  }
+]

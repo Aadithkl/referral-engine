@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Rewards</title>
+<style>
+  :root {
+    --bg: #0a0f1e; --surface: #131a2e; --border: #1e2d4a;
+    --text: #e8edf5; --muted: #8899b9; --dim: #556688;
+    --accent: #10b981; --glow: rgba(16,185,129,0.25);
+    --primary: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(160deg, var(--bg) 0%, #0d1529 60%, #111d3a 100%);
+    color: var(--text); min-height: 100vh;
+    display: flex; justify-content: center; align-items: center; padding: 16px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px 28px 20px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  }
+  .label-badge {
+    display: inline-block; font-size: 11px; font-weight: 600; color: var(--accent);
+    background: rgba(16,185,129,0.1); padding: 4px 14px; border-radius: 20px;
+    margin-bottom: 16px; letter-spacing: 0.02em;
+  }
+  .earned-section {
+    text-align: center; margin-bottom: 24px; position: relative;
+  }
+  .earned-number {
+    font-size: 48px; font-weight: 800; color: #fff;
+    letter-spacing: -0.02em; line-height: 1;
+    text-shadow: 0 0 40px var(--glow);
+  }
+  .earned-unit {
+    font-size: 18px; font-weight: 400; color: var(--accent);
+    display: block; margin-top: 2px;
+  }
+  .divider {
+    height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 20px 0 16px;
+  }
+  .stat-row {
+    display: flex; gap: 12px; margin-bottom: 20px;
+  }
+  .stat-box {
+    flex: 1; background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 10px; text-align: center;
+  }
+  .stat-box .val {
+    font-size: 26px; font-weight: 700; color: var(--text);
+  }
+  .stat-box .lbl {
+    font-size: 10px; color: var(--dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .next-reward {
+    background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(59,130,246,0.02));
+    border: 1px solid rgba(59,130,246,0.15); border-radius: 12px;
+    padding: 16px; text-align: center; margin-bottom: 20px;
+    cursor: pointer; position: relative; user-select: none;
+    transition: border-color 0.3s;
+  }
+  .next-reward:hover { border-color: rgba(59,130,246,0.4); }
+  .next-reward .nr-val {
+    font-size: 28px; font-weight: 700; color: var(--primary);
+    filter: blur(6px); transition: filter 0.3s ease;
+    text-shadow: 0 0 20px rgba(59,130,246,0.3);
+  }
+  .next-reward:hover .nr-val { filter: blur(0); }
+  .next-reward .nr-lbl {
+    font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .next-reward .nr-hint {
+    font-size: 9px; color: var(--dim); margin-top: 6px; opacity: 0.7;
+  }
+  .chart-wrap {
+    height: 80px; margin-bottom: 16px; position: relative;
+  }
+  .chart-wrap canvas {
+    width: 100% !important; height: 100% !important;
+  }
+  .chart-label {
+    text-align: center; font-size: 9px; color: var(--dim); margin-top: -8px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .history {
+    border-top: 1px solid var(--border); padding-top: 16px;
+  }
+  .history h4 {
+    font-size: 10px; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.05em; margin-bottom: 10px;
+  }
+  .history-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; font-size: 11px; color: var(--muted);
+  }
+  .history-item .date { color: var(--dim); font-size: 10px; }
+  .history-item .count { color: var(--accent); font-weight: 600; }
+  .history-empty { font-size: 11px; color: var(--dim); padding: 12px 0; text-align: center; }
+
+  .nav-pill {
+    display: block; text-align: center; margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .nav-pill a {
+    display: inline-block; padding: 5px 14px; border: 1px solid var(--border);
+    border-radius: 16px; font-size: 10px; color: var(--dim); text-decoration: none;
+    transition: all 0.15s;
+  }
+  .nav-pill a:hover { border-color: var(--primary); color: var(--primary); }
+
+  .error { color: #ef4444; text-align: center; padding: 24px; }
+  .loading { text-align: center; color: var(--dim); padding: 40px; }
+  .spinner {
+    display: inline-block; width: 24px; height: 24px; border: 2px solid var(--border);
+    border-top-color: var(--primary); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin-bottom: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 20px var(--glow); }
+    50% { text-shadow: 0 0 50px var(--glow), 0 0 80px rgba(16,185,129,0.15); }
+  }
+  .earned-number { animation: pulse-glow 3s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="loading"><div class="spinner"></div><div>Loading your rewards…</div></div>
+</div>
+
+<script>
+const userId = window.location.pathname.split('/').pop();
+
+async function load() {
+  const card = document.getElementById('card');
+  try {
+    const [statusRes, historyRes] = await Promise.all([
+      fetch('/api/user/' + userId + '/status'),
+      fetch('/api/user/' + userId + '/referrals'),
+    ]);
+    if (!statusRes.ok) throw new Error('User not found');
+    const d = await statusRes.json();
+    const h = await historyRes.json();
+    render(d, h);
+  } catch (e) {
+    card.innerHTML = '<div class="error">You\'ll see your rewards here soon. Check back after your first referral!</div>';
+  }
+}
+
+function render(d, h) {
+  const pct = d.referrals_target > 0
+    ? Math.min(100, (d.referrals_completed / Math.max(d.referrals_target, 1)) * 100)
+    : 0;
+
+  const historyItems = (h.history || []).length
+    ? (h.history || []).slice(0, 8).map(r => `
+        <div class="history-item">
+          <span class="date">${formatDate(r.timestamp)}</span>
+          <span class="count">+${r.count} referral${r.count > 1 ? 's' : ''}</span>
+        </div>`).join('')
+    : '<div class="history-empty">Your journey starts now</div>';
+
+  document.getElementById('card').innerHTML = `
+    <div class="label-badge">${esc(d.friendly_label)}</div>
+
+    <div class="earned-section">
+      <div class="earned-number">${Number(d.total_earned).toFixed(0)}</div>
+      <div class="earned-unit">credits earned</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="val">${d.referrals_completed}</div>
+        <div class="lbl">Referrals</div>
+      </div>
+      <div class="stat-box">
+        <div class="val">${d.referrals_completed > 0 ? '+' + d.reward_for_step.toFixed(0) : 0}</div>
+        <div class="lbl">Last reward</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap"><canvas id="mchart"></canvas></div>
+    <div class="chart-label">your earning trend</div>
+
+    <div class="history">
+      <h4>Recent Activity</h4>
+      ${historyItems}
+    </div>
+
+    <div class="nav-pill">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/overview">Overview</a>
+    </div>
+  `;
+
+  drawMotivationalChart(d.referrals_completed, d.total_earned);
+}
+
+function drawMotivationalChart(referrals, earned) {
+  const canvas = document.getElementById('mchart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement.clientWidth;
+  const H = 80;
+  canvas.width = W * 2;
+  canvas.height = H * 2;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(2, 2);
+
+  const points = 12;
+  const data = [];
+  let val = earned > 0 ? earned * 0.1 : 1;
+  for (let i = 0; i < points; i++) {
+    val += Math.random() * val * 0.35 + val * 0.02;
+    data.push(val);
+  }
+  if (earned > 0) data[data.length - 1] = earned;
+
+  const maxVal = Math.max(...data) * 1.15;
+  const minVal = 0;
+  const range = maxVal - minVal || 1;
+
+  const stepX = W / (points - 1);
+  const pts = data.map((v, i) => ({
+    x: i * stepX,
+    y: H - ((v - minVal) / range) * (H - 10) - 5,
+  }));
+
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(16,185,129,0.15)');
+  grad.addColorStop(1, 'rgba(16,185,129,0.0)');
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, H);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length - 1].x, H);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const cx = (pts[i - 1].x + pts[i].x) / 2;
+    ctx.bezierCurveTo(cx, pts[i - 1].y, cx, pts[i].y, pts[i].x, pts[i].y);
+  }
+  ctx.strokeStyle = 'rgba(16,185,129,0.7)';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(16,185,129,0.4)';
+  ctx.shadowBlur = 8;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  pts.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
+    ctx.fill();
+  });
+}
+
+function formatDate(ts) {
+  try { return new Date(ts).toLocaleDateString(); } catch(e) { return ts; }
+}
+function esc(s) { return String(s||'').replace(/[<>&]/g,''); }
+
+load();
+</script>
+</body>
+</html>

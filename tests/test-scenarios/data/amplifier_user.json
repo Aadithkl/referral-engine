@@ -1,0 +1,35 @@
+{
+  "user_id": "amplifier_user_004",
+  "source": "product_backend",
+  "data": {
+    "events": [
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-14T07:00:00Z"},
+      {"event_type": "feature_used", "payload": {"feature": "share", "count": 30}, "created_at": "2026-05-13T09:00:00Z"},
+      {"event_type": "invite_sent", "payload": {"recipients": 10}, "created_at": "2026-05-12T18:00:00Z"},
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-10T11:00:00Z"},
+      {"event_type": "feature_used", "payload": {"feature": "dashboard", "count": 3}, "created_at": "2026-05-05T13:00:00Z"}
+    ],
+    "profile": {
+      "name": "Dave Amplifier",
+      "email": "dave@example.com",
+      "created_at": "2023-11-20T00:00:00Z",
+      "last_active_at": "2026-05-14T07:30:00Z",
+      "account_age_days": 906,
+      "total_product_sessions_90d": 22,
+      "feature_adoption_count": 3,
+      "support_tickets_90d": 3,
+      "support_tickets_resolved": 1,
+      "positive_outcome_events": 5,
+      "recent_activity_trend": "declining",
+      "twitter_handle": "dave_amplify",
+      "twitter_followers": 15000,
+      "twitter_following": 500,
+      "twitter_tweet_count": 3200,
+      "twitter_engagement_rate": 0.041,
+      "prior_referrals_total": 3,
+      "last_asked_at": "2026-05-01T09:00:00Z",
+      "last_declined_at": null
+    }
+  },
+  "callback_url": null
+}

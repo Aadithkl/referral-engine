@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curve Designer — Referral Engine</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #111827; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --dim: #64748b;
+    --primary: #3b82f6; --active: #60a5fa;
+    --hook: #10b981; --valley: #f59e0b; --surge: #ef4444; --plateau: #8b5cf6; --target: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  header { display: flex; align-items: center; gap: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; flex-shrink: 0; }
+  header .tab { padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; color: var(--muted); transition: all 0.15s; user-select: none; }
+  header .tab:hover { color: var(--text); }
+  header .tab.active { color: var(--active); border-bottom-color: var(--active); }
+  header .spacer { flex: 1; }
+  header .nav-link { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); color: var(--muted); transition: all 0.15s; white-space: nowrap; }
+  header .nav-link:hover { border-color: var(--primary); color: var(--text); }
+  header .user-goto { display: flex; align-items: center; gap: 0; margin-left: 8px; }
+  header .user-goto input { width: 120px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px 0 0 4px; padding: 5px 8px; font-size: 11px; outline: none; }
+  header .user-goto input:focus { border-color: var(--primary); }
+  header .user-goto button { background: var(--primary); color: #fff; border: none; border-radius: 0 4px 4px 0; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer; }
+  header .user-goto button:hover { filter: brightness(1.15); }
+  header .btn { background: var(--primary); color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: 12px; }
+  header .btn:hover { filter: brightness(1.15); }
+  header .btn.saved { background: var(--hook); }
+  .layout { display: flex; flex: 1; min-height: 0; }
+  aside { width: 340px; min-width: 340px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
+  aside .panel { display: none; flex-direction: column; }
+  aside .panel.active { display: flex; }
+  aside .basehook { padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; gap: 8px; }
+  aside .basehook label { font-size: 10px; color: var(--active); font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+  aside .basehook input[type=number] { width: 65px; background: var(--bg); color: var(--text); border: 1px solid var(--primary); border-radius: 3px; padding: 3px 6px; font-size: 12px; text-align: right; font-weight: 600; }
+  aside .basehook .hint { font-size: 9px; color: var(--dim); }
+  aside .qblock { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  aside .qblock h4 { font-size: 11px; margin-bottom: 6px; font-weight: 700; }
+  aside .group { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  aside .group h4 { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  aside .group.setup-bg { background: var(--surface2); }
+  aside .group.setup-bg .badge { display: inline-block; background: var(--primary); color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 8px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+  .row label { font-size: 10px; color: var(--muted); min-width: 84px; text-align: right; flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: var(--primary); height: 3px; }
+  .row input[type=number] { width: 60px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+  .row select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font-size: 10px; }
+  .computed { font-size: 9px; color: var(--dim); margin-top: 2px; padding: 0 84px 0 0; }
+  .computed span { color: var(--muted); }
+  .computed em { color: var(--active); font-style: normal; }
+
+  main { flex: 1; display: flex; flex-direction: column; padding: 8px 12px; gap: 4px; overflow-y: auto; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; flex: 1; min-height: 0; }
+  .chart-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .chart-cell .cell-header { padding: 4px 8px; font-size: 11px; font-weight: 700; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+  .chart-cell .cell-stats { font-size: 9px; color: var(--dim); display: flex; gap: 8px; }
+  .chart-cell .cell-stats b { color: var(--muted); }
+  .chart-cell canvas { flex: 1; min-height: 0; width: 100% !important; }
+
+  .track-filters { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .track-filters input[type=text] { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 10px; min-width: 0; }
+  .track-filters select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 10px; }
+  .track-filters .refresh-btn { background: var(--primary); color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 10px; cursor: pointer; white-space: nowrap; }
+  .track-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .track-table th { text-align: left; padding: 5px 8px; color: var(--dim); border-bottom: 2px solid var(--border); font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .track-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .track-table .uid { color: var(--muted); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .track-table .progress-cell { min-width: 70px; }
+  .track-table .mini-bar { height: 5px; background: var(--bg); border-radius: 3px; margin-bottom: 2px; overflow: hidden; }
+  .track-table .mini-fill { height: 100%; border-radius: 3px; }
+  .track-table .bump-btn { background: var(--primary); color: #fff; border: none; border-radius: 3px; padding: 1px 6px; font-size: 9px; cursor: pointer; }
+  .track-table .bump-btn:hover { filter: brightness(1.2); }
+  .track-table .bump-btn:disabled { opacity: 0.3; cursor: default; }
+  .track-row { cursor: pointer; }
+  .track-row:hover { background: rgba(59,130,246,0.05); }
+  .detail-row { display: none; background: var(--surface2); }
+  .detail-row td { padding: 10px 12px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 10px; }
+  .detail-grid h5 { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .detail-curve { max-height: 180px; overflow-y: auto; }
+  .detail-curve .step-row { display: flex; gap: 4px; padding: 2px 0; align-items: center; }
+  .detail-curve .step-row.active { background: rgba(59,130,246,0.1); border-radius: 2px; }
+  .detail-curve .snum { width: 24px; color: var(--dim); text-align: right; }
+  .detail-curve .srew { width: 44px; color: var(--muted); text-align: right; }
+  .detail-curve .sphase { font-size: 8px; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; }
+  .detail-hist { font-size: 9px; color: var(--dim); max-height: 180px; overflow-y: auto; }
+  .detail-hist .hist-item { padding: 2px 0; }
+  .empty-tracking { padding: 20px 14px; text-align: center; color: var(--dim); font-size: 10px; }
+  .pipe-form { padding: 8px 10px; }
+  .pipe-form .field { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+  .pipe-form .field label { font-size: 10px; color: var(--muted); min-width: 100px; text-align: right; }
+  .pipe-form .field input, .pipe-form .field select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font-size: 10px; width: 100px; }
+  .pipe-form .field select { width: 106px; }
+  .pipe-disclaimer { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 6px; padding: 8px 10px; margin: 8px 10px; font-size: 9px; color: var(--valley); line-height: 1.4; }
+  .pipe-btn-row { display: flex; gap: 4px; padding: 8px 10px; }
+  .pipe-btn-row button { flex: 1; border: none; border-radius: 5px; padding: 6px 0; font-size: 11px; font-weight: 600; cursor: pointer; color: #fff; }
+  .pipe-btn-row .gen-btn { background: var(--plateau); }
+  .pipe-btn-row .run-btn { background: var(--accent); }
+  .pipe-btn-row button:hover { filter: brightness(1.15); }
+  .pipe-btn-row button:disabled { opacity: 0.4; cursor: default; filter: none; }
+  .pipe-result { padding: 8px 10px; font-size: 10px; }
+  .pipe-result .res-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 6px; }
+  .pipe-result .res-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+  .pipe-result .res-row .rlbl { color: var(--dim); }
+  .pipe-result .res-row .rval { color: var(--text); font-weight: 600; }
+  .pipe-result .res-err { color: var(--surge); }
+
+  .param-info { position: relative; display: inline-block; cursor: help; margin-left: 2px; font-size: 9px; color: var(--dim); font-weight: 700; width: 12px; height: 12px; text-align: center; line-height: 12px; border-radius: 50%; border: 1px solid var(--dim); }
+  .param-info:hover { color: var(--primary); border-color: var(--primary); }
+  .param-info .tooltip { display: none; position: absolute; bottom: 18px; left: -80px; width: 180px; background: var(--surface2); border: 1px solid var(--primary); border-radius: 6px; padding: 6px 8px; font-size: 9px; color: var(--text); font-weight: 400; text-align: left; line-height: 1.4; z-index: 100; pointer-events: none; white-space: normal; }
+  .param-info:hover .tooltip { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="tab active" data-tab="curve">Curve Designer</span>
+  <span class="tab" data-tab="setup">Test Inputs</span>
+  <span class="tab" data-tab="tracking">User Tracking</span>
+  <span class="tab" data-tab="pipeline">Run Pipeline</span>
+  <span class="spacer"></span>
+  <a href="/" class="nav-link">Landing</a>
+  <a href="/overview" class="nav-link">Overview</a>
+  <div class="user-goto">
+    <input type="text" id="gotoUser" placeholder="user_id…" onkeydown="if(event.key==='Enter')gotoUserView()">
+    <button onclick="gotoUserView()">View</button>
+  </div>
+  <button class="btn" id="saveBtn">Save to .env</button>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="panel active" id="panel-curve"></div>
+    <div class="panel" id="panel-setup"></div>
+    <div class="panel" id="panel-tracking"></div>
+    <div class="panel" id="panel-pipeline"></div>
+  </aside>
+
+  <main id="mainPanel">
+    <div class="chart-grid" id="chartGrid">
+      <div class="chart-cell"><div class="cell-header" id="hdr-influencer" style="color:#3b82f6">Influencer</div><canvas id="chart-influencer"></canvas></div>
+      <div class="chart-cell"><div class="cell-header" id="hdr-broadcaster" style="color:#f59e0b">Broadcaster</div><canvas id="chart-broadcaster"></canvas></div>
+      <div class="chart-cell"><div class="cell-header" id="hdr-fan" style="color:#10b981">Fan</div><canvas id="chart-fan"></canvas></div>
+      <div class="chart-cell"><div class="cell-header" id="hdr-newcomer" style="color:#8b5cf6">Newcomer</div><canvas id="chart-newcomer"></canvas></div>
+    </div>
+    <div id="userCurveOverlay" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+Chart.defaults.font.color = '#94a3b8'; Chart.defaults.font.size = 10; Chart.defaults.borderColor = '#334155';
+const QC = { Influencer: '#3b82f6', Broadcaster: '#f59e0b', Fan: '#10b981', Newcomer: '#8b5cf6' };
+let charts = {}, timer = null, _dirty = new Set(), quadrantParams = [], quadrantValues = {}, baseReward = 10;
+
+const PARAM_INFO = {
+  HOOK_RATIO: 'Multiplier on base reward for the first referral step. Higher = bigger instant reward to hook users in.',
+  VALLEY_DROP: 'Fraction of hook reward that the valley bottoms out at. Lower = steeper drop to test commitment.',
+  VALLEY_STEPS: 'Number of steps at the valley floor. More steps = longer commitment test before rewards rise.',
+  PEAK_RATIO: 'Multiplier on hook reward for the surge peak near the target. Higher = bigger reward as users approach goal.',
+  POST_CAP: 'Multiplier on hook reward to cap rewards after the target is reached. Prevents runaway costs.',
+  BASE_REWARD: 'The unit anchor that scales all curves. Agent assigns actual value (credits, dollars) at runtime.',
+};
+
+const BLUEPRINT_PERSONAS = {
+  Influencer: { tw_followers: 5000, tw_engagement: 0.07, tw_following: 2000, account_age: 600, sessions_90d: 100, features_adopted: 10, positive_outcomes: 30, support_tickets: 1, tickets_resolved: 1, activity_trend: 'rising' },
+  Broadcaster: { tw_followers: 8000, tw_engagement: 0.10, tw_following: 5000, account_age: 200, sessions_90d: 30, features_adopted: 3, positive_outcomes: 5, support_tickets: 4, tickets_resolved: 2, activity_trend: 'stable' },
+  Fan: { tw_followers: 800, tw_engagement: 0.04, tw_following: 400, account_age: 600, sessions_90d: 150, features_adopted: 10, positive_outcomes: 25, support_tickets: 0, tickets_resolved: 0, activity_trend: 'rising' },
+  Newcomer: { tw_followers: 50, tw_engagement: 0.01, tw_following: 100, account_age: 14, sessions_90d: 5, features_adopted: 1, positive_outcomes: 2, support_tickets: 3, tickets_resolved: 1, activity_trend: 'declining' }
+};
+
+function fmtVal(type, v) { if (type === 'pct') return (v*100).toFixed(0)+'%'; if (type==='dollar') return '$'+Number(v).toFixed(0); if (type==='float') return Number(v).toFixed(1); return String(v); }
+function parseUnfmt(s) { return parseFloat(String(s).replace(/[$,%]/g,''))||0; }
+function sliderStep(type) { if (type==='dollar') return 1; if (type==='pct') return 0.01; if (type==='int') return 1; return 'any'; }
+function esc2(s) { return String(s||'').replace(/[<>&]/g,''); }
+function gotoUserView() { const uid=document.getElementById('gotoUser').value.trim(); if(uid) window.open('/user/'+uid,'_blank'); }
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  document.querySelectorAll('aside .panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+  if (t.dataset.tab === 'tracking') loadUserTracking();
+}));
+
+function buildPanels(cfg) {
+  baseReward = cfg.base_reward || 10;
+  quadrantParams = cfg.quadrant_params;
+  quadrantValues = cfg.quadrant_values;
+
+  const pc = document.getElementById('panel-curve');
+  pc.innerHTML = '';
+  const bh = document.createElement('div'); bh.className = 'basehook';
+  const bhl = document.createElement('label'); bhl.textContent = 'Base Reward';
+  const infoBr = document.createElement('span'); infoBr.className='param-info'; infoBr.textContent='?';
+  const ttBr = document.createElement('span'); ttBr.className='tooltip'; ttBr.textContent=PARAM_INFO.BASE_REWARD;
+  infoBr.appendChild(ttBr); bhl.appendChild(infoBr); bh.appendChild(bhl);
+  const bhi = document.createElement('input'); bhi.type='number'; bhi.value=baseReward; bhi.min=1; bhi.max=100; bhi.step=1; bhi.dataset.key='BASE_REWARD';
+  bhi.addEventListener('input', () => { baseReward = parseFloat(bhi.value)||10; debounceAll(); });
+  bh.appendChild(bhi);
+  const bhh = document.createElement('span'); bhh.className='hint'; bhh.textContent='Unit anchor'; bh.appendChild(bhh);
+  pc.appendChild(bh);
+
+  Object.entries(quadrantValues).forEach(([qname, vals]) => {
+    const block = document.createElement('div'); block.className='qblock';
+    const h4 = document.createElement('h4'); h4.style.color=QC[qname]; h4.textContent=qname; block.appendChild(h4);
+    quadrantParams.forEach(p => {
+      const fullKey = qname.toUpperCase()+'_'+p.key;
+      block.appendChild(buildRow(p, fullKey, vals[p.key.toLowerCase()]));
+    });
+    const comp = document.createElement('div'); comp.className='computed'; block.appendChild(comp);
+    pc.appendChild(block);
+  });
+
+  document.getElementById('panel-setup').innerHTML = '';
+  document.getElementById('panel-setup').appendChild(hdr('Test Inputs'));
+  const g1 = document.createElement('div'); g1.className='group setup-bg';
+  const badge = document.createElement('div'); badge.className='badge'; badge.textContent='input only';
+  g1.appendChild(badge);
+  cfg.test_fields.forEach(f => g1.appendChild(buildFieldRow(f)));
+  document.getElementById('panel-setup').appendChild(g1);
+
+  if (cfg.thresholds && cfg.thresholds.length) {
+    document.getElementById('panel-setup').appendChild(hdr('Raw Thresholds'));
+    const g2 = document.createElement('div'); g2.className='group';
+    cfg.thresholds.forEach(t => g2.appendChild(buildGateRow(t)));
+    document.getElementById('panel-setup').appendChild(g2);
+  }
+
+  document.getElementById('panel-tracking').innerHTML = '<div class="group" style="padding:12px 14px;color:var(--muted);font-size:11px" id="trackingContent">Select tab to load…</div>';
+  buildPipelinePanel();
+  debounceAll();
+}
+
+function updateComputed() {
+  document.querySelectorAll('#panel-curve .qblock').forEach(block => {
+    const rows = block.querySelectorAll('.row');
+    let hookRatio=1, drop=0.25, peakRatio=2;
+    rows.forEach(row => {
+      const key = row.querySelector('[data-key]')?.dataset?.key || '';
+      const val = parseFloat(row.querySelector('input[type=number]')?.value)||0;
+      if (key.endsWith('HOOK_RATIO')) hookRatio=val;
+      if (key.endsWith('VALLEY_DROP')) drop=val;
+      if (key.endsWith('PEAK_RATIO')) peakRatio=val;
+    });
+    const hook=baseReward*hookRatio, floor=hook*drop, peak=hook*peakRatio;
+    const comp=block.querySelector('.computed');
+    if(comp) comp.innerHTML='<span>Hook: <em>'+hook.toFixed(1)+'</em> Valley: '+floor.toFixed(2)+' Peak: '+peak.toFixed(1)+'</span>';
+  });
+}
+
+function hdr(title) { const h=document.createElement('div'); h.className='group'; h.style.cssText='padding:6px 14px;border-bottom:1px solid var(--border)'; const h4=document.createElement('h4'); h4.textContent=title; h4.style.margin=0; h.appendChild(h4); return h; }
+
+function buildFieldRow(f) {
+  const row=document.createElement('div'); row.className='row';
+  const lbl=document.createElement('label'); lbl.textContent=f.label; row.appendChild(lbl);
+  if (f.type==='select') {
+    const sel=document.createElement('select'); sel.dataset.key=f.key;
+    if(f.options) f.options.forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt)});
+    sel.value=f.default; sel.addEventListener('change',()=>{}); row.appendChild(sel);
+  } else {
+    const inp=document.createElement('input'); inp.type='number'; inp.value=f.default;
+    inp.step=f.type==='pct'?'0.001':'1'; inp.dataset.key=f.key; inp.style.width='72px'; row.appendChild(inp);
+  }
+  return row;
+}
+
+function buildGateRow(s) {
+  const row=document.createElement('div'); row.className='row';
+  const lbl=document.createElement('label'); lbl.textContent=s.label; row.appendChild(lbl);
+  const slider=document.createElement('input'); slider.type='range'; slider.min=s.min; slider.max=s.max; slider.step=s.step; slider.value=s.value??s.default; slider.dataset.key=s.key;
+  row.appendChild(slider);
+  const num=document.createElement('input'); num.type='number'; num.value=slider.value; num.step=sliderStep(s.type); num.dataset.key=s.key; num.style.width='60px';
+  slider.addEventListener('input',()=>{num.value=slider.value});
+  num.addEventListener('input',()=>{const v=parseUnfmt(num.value);if(!isNaN(v)&&v>=Number(s.min)&&v<=Number(s.max))slider.value=v});
+  num.addEventListener('blur',()=>{const v=parseUnfmt(num.value);num.value=fmtVal(s.type,Math.min(Number(s.max),Math.max(Number(s.min),isNaN(v)?(s.value||s.default||0):v)));slider.value=num.value});
+  row.appendChild(num); return row;
+}
+
+function buildRow(p, fullKey, value) {
+  const row=document.createElement('div'); row.className='row';
+  const lbl=document.createElement('label'); lbl.textContent=p.label;
+  const info = PARAM_INFO[p.key];
+  if (info) {
+    const infospan = document.createElement('span'); infospan.className='param-info'; infospan.textContent='?';
+    const tt = document.createElement('span'); tt.className='tooltip'; tt.textContent=info;
+    infospan.appendChild(tt); lbl.appendChild(infospan);
+  }
+  row.appendChild(lbl);
+  const slider=document.createElement('input'); slider.type='range'; slider.min=p.min; slider.max=p.max; slider.step=p.step; slider.value=value??p.default; slider.dataset.key=fullKey;
+  row.appendChild(slider);
+  const num=document.createElement('input'); num.type='number'; num.value=slider.value; num.step=sliderStep(p.type); num.dataset.key=fullKey; num.style.width='60px';
+  const archKey = fullKey.split('_')[0];
+  const archetype = archKey.charAt(0) + archKey.slice(1).toLowerCase();
+  slider.addEventListener('input',()=>{num.value=slider.value; debounceArchetype(archetype)});
+  num.addEventListener('input',()=>{const v=parseUnfmt(num.value);if(!isNaN(v)&&v>=Number(p.min)&&v<=Number(p.max))slider.value=v; debounceArchetype(archetype)});
+  num.addEventListener('blur',()=>{const v=parseUnfmt(num.value);num.value=fmtVal(p.type,Math.min(Number(p.max),Math.max(Number(p.min),isNaN(v)?(value||p.default||0):v)));slider.value=num.value});
+  row.appendChild(num); return row;
+}
+
+function getSettings() {
+  const settings={};
+  document.querySelectorAll('#panel-curve [data-key]').forEach(el=>{settings[el.dataset.key]=el.value});
+  if(!settings.BASE_REWARD) settings.BASE_REWARD=baseReward;
+  return settings;
+}
+
+function debounceArchetype(archetype) { updateComputed(); _dirty.add(archetype); clearTimeout(timer); timer=setTimeout(()=>{const archs=[..._dirty];_dirty.clear();archs.forEach(a=>fetchBlueprint(a))},150); }
+function debounceAll() { updateComputed(); _dirty.add('Influencer');_dirty.add('Broadcaster');_dirty.add('Fan');_dirty.add('Newcomer'); clearTimeout(timer); timer=setTimeout(()=>{const archs=[..._dirty];_dirty.clear();archs.forEach(a=>fetchBlueprint(a))},150); }
+
+async function fetchBlueprint(archetype) {
+  const settings = getSettings();
+  const persona = BLUEPRINT_PERSONAS[archetype];
+  const params = new URLSearchParams(settings);
+  Object.entries(persona).forEach(([k,v])=>params.set(k,v));
+  try {
+    const r = await fetch('/api/curve/preview?'+params.toString());
+    const d = await r.json();
+    renderBlueprintChart(archetype, d);
+  } catch(e) { console.error(archetype, e); }
+}
+
+async function fetchAllBlueprints() {
+  const settings = getSettings();
+  for (const arch of ['Influencer','Broadcaster','Fan','Newcomer']) {
+    const persona = BLUEPRINT_PERSONAS[arch];
+    const params = new URLSearchParams(settings);
+    Object.entries(persona).forEach(([k,v])=>params.set(k,v));
+    try {
+      const r = await fetch('/api/curve/preview?'+params.toString());
+      renderBlueprintChart(arch, await r.json());
+    } catch(e) { console.error(arch, e); }
+  }
+}
+
+function renderBlueprintChart(archetype, data) {
+  const canvasId = 'chart-' + archetype.toLowerCase();
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (charts[archetype]) charts[archetype].destroy();
+  const milestones = data.milestones || [];
+  const phaseColors = { hook: '#10b981', valley: '#f59e0b', surge: '#ef4444', plateau: '#8b5cf6' };
+  const pcuTarget = data.scores ? data.scores.pcu : 0;
+  const penPct = data.penalty_factor != null ? ((1-data.penalty_factor)*100).toFixed(0) : 0;
+
+  charts[archetype] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: milestones.map(m=>m.step),
+      datasets: [{
+        label: 'Reward', data: milestones.map(m=>m.baseline),
+        backgroundColor: milestones.map(m=>(phaseColors[m.phase]||'#6b7280')+'CC'),
+        borderColor: milestones.map(m=>phaseColors[m.phase]||'#6b7280'),
+        borderWidth: 1, borderRadius: 2,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.raw.toFixed(2)+' ('+(data.milestones[ctx.dataIndex]?.phase||'')+')' } },
+        annotation: {
+          annotations: {
+            tline: { type: 'line', xMin: pcuTarget-0.5, xMax: pcuTarget-0.5, borderColor: '#ec4899', borderWidth: 1.5, borderDash: [4,3],
+              label: { display: !!pcuTarget, content: 'PCU:'+pcuTarget, position: 'start', backgroundColor: '#ec4899', color: '#fff', font: { size: 9, weight: 'bold' } } },
+          },
+        },
+      },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { grid: { color: '#1e293b' }, ticks: { font: { size: 8 } } } },
+    },
+  });
+
+  const hdr = document.getElementById('hdr-' + archetype.toLowerCase());
+  if (hdr) hdr.innerHTML = '<span>' + archetype + '</span><span class="cell-stats"><b>' + Number(data.total_budget).toFixed(0) + '</b> ' + data.step_count + ' steps <b style="color:'+(penPct>0?'var(--surge)':'var(--accent)')+'">'+penPct+'% pen</b></span>';
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const settings = getSettings();
+  try {
+    const r = await fetch('/api/curve/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+    const d = await r.json();
+    const btn = document.getElementById('saveBtn');
+    if (d.ok) { btn.textContent='Saved'; btn.classList.add('saved'); setTimeout(()=>{btn.textContent='Save to .env';btn.classList.remove('saved')},2000); }
+    else alert('Failed: '+(d.error||'unknown'));
+  } catch(e) { alert('Save error: '+e.message); }
+});
+
+/* ── User Tracking tab ── */
+let _trackingState = { search: '', archetype: '', status: '' };
+async function loadUserTracking() {
+  const el = document.getElementById('trackingContent'); if (!el) return;
+  const existingSearch=el.querySelector('input[type=text]'); if(existingSearch) _trackingState.search=existingSearch.value;
+  const existingSelects=el.querySelectorAll('select'); if(existingSelects.length>=2){_trackingState.archetype=existingSelects[0].value;_trackingState.status=existingSelects[1].value}
+  el.innerHTML='<div style="padding:10px;color:var(--dim);font-size:10px;text-align:center">Loading…</div>';
+  try {
+    const qs=new URLSearchParams(); if(_trackingState.archetype)qs.set('archetype',_trackingState.archetype); if(_trackingState.status)qs.set('status',_trackingState.status); if(_trackingState.search)qs.set('search',_trackingState.search);
+    renderTrackingTable(await(await fetch('/api/user/progress?'+qs.toString())).json());
+  } catch(e) { el.innerHTML=buildTrackingHeader()+'<div class="empty-tracking">Failed: '+esc2(e.message)+'</div>'; restoreFilterValues(); }
+}
+function buildTrackingHeader() {
+  return '<div class="track-filters"><input type="text" id="trackSearch" placeholder="Search user_id…" oninput="onTrackingFilterChange()"><select id="trackArchetype" onchange="onTrackingFilterChange()"><option value="">All</option><option>Influencer</option><option>Broadcaster</option><option>Fan</option><option>Newcomer</option></select><select id="trackStatus" onchange="onTrackingFilterChange()"><option value="">All</option><option value="active">Active</option><option value="completed">Completed</option></select><button class="refresh-btn" onclick="loadUserTracking()">Refresh</button></div>';
+}
+function onTrackingFilterChange() { const s=document.getElementById('trackSearch'),a=document.getElementById('trackArchetype'),t=document.getElementById('trackStatus'); _trackingState.search=s?s.value:''; _trackingState.archetype=a?a.value:''; _trackingState.status=t?t.value:''; loadUserTracking(); }
+function restoreFilterValues() { const s=document.getElementById('trackSearch'),a=document.getElementById('trackArchetype'),t=document.getElementById('trackStatus'); if(s)s.value=_trackingState.search; if(a)a.value=_trackingState.archetype; if(t)t.value=_trackingState.status; }
+function renderTrackingTable(data) {
+  const el=document.getElementById('trackingContent');
+  let html=buildTrackingHeader();
+  if(!data||!data.length){ el.innerHTML=html+'<div class="empty-tracking">No users tracked yet. Run pipeline to add users.</div>'; restoreFilterValues(); return; }
+  html+='<div style="font-size:9px;color:var(--dim);padding:4px 10px">'+data.length+' users</div><table class="track-table"><thead><tr><th>User</th><th>Label</th><th>Type</th><th>Referrals</th><th>Earned</th><th>Target</th><th>+1</th></tr></thead><tbody>';
+  data.forEach(p=>{
+    const color=QC[p.archetype]||'#6b7280', pct=p.referrals_target>0?Math.min(100,(p.referrals_completed/p.referrals_target)*100):0, barColor=pct>=80?'var(--accent)':pct>=30?'var(--primary)':'var(--border)';
+    html+='<tr class="track-row" onclick="toggleDetail(\''+esc2(p.user_id)+'\')"><td class="uid" title="'+esc2(p.user_id)+'">'+esc2(p.user_id)+'</td><td style="color:var(--text)">'+esc2(p.friendly_label)+'</td><td style="color:'+color+'">'+esc2(p.archetype)+'</td><td class="progress-cell"><div class="mini-bar"><div class="mini-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div><span style="font-size:9px;color:var(--dim)">'+p.referrals_completed+'/'+p.referrals_target+'</span></td><td style="color:var(--text)">'+Number(p.total_earned).toFixed(0)+'</td><td style="color:var(--dim);font-size:10px">'+p.referrals_target+'</td><td><button class="bump-btn" onclick="event.stopPropagation();manualBump(\''+esc2(p.user_id)+'\')">+1</button></td></tr>';
+    html+='<tr class="detail-row" id="detail-'+esc2(p.user_id)+'"><td colspan="7"><div style="text-align:center;color:var(--dim);font-size:10px">Loading details…</div></td></tr>';
+  });
+  el.innerHTML=html+'</tbody></table>'; restoreFilterValues();
+}
+
+const _detailCache={};
+async function toggleDetail(uid) {
+  const row=document.getElementById('detail-'+uid); if(!row) return;
+  if(row.style.display==='table-row'){row.style.display='none';return}
+  row.style.display='table-row';
+  if(_detailCache[uid]){row.innerHTML='<td colspan="7">'+_detailCache[uid]+'</td>';return}
+  try {
+    const[progRes,histRes,curveRes]=await Promise.all([fetch('/api/user/'+uid+'/status'),fetch('/api/user/'+uid+'/referrals'),fetch('/v1/referral/curves/'+uid)]);
+    const prog=progRes.ok?await progRes.json():null, hist=histRes.ok?await histRes.json():null, curve=curveRes.ok?await curveRes.json():null;
+    const html=buildDetail(uid,prog,hist,curve); _detailCache[uid]=html; row.innerHTML='<td colspan="7">'+html+'</td>';
+    if(curve&&curve.milestones) renderUserCurve(uid,curve,prog);
+  } catch(e){ row.innerHTML='<td colspan="7"><span style="color:#ef4444">Error loading details</span></td>'; }
+}
+function buildDetail(uid,prog,hist,curve) {
+  let html='<div class="detail-grid"><div><h5>Curve Milestones</h5><div class="detail-curve">';
+  if(curve&&curve.milestones){ const step=prog?prog.referrals_completed:0; curve.milestones.slice(0,20).forEach(m=>{
+    const active=m.step===step+1?' active':'', past=m.step<=step?'opacity:0.4':''; const pc={hook:'#10b981',valley:'#f59e0b',surge:'#ef4444',plateau:'#8b5cf6'};
+    html+='<div class="step-row'+active+'" style="'+past+'"><span class="snum">'+m.step+'</span><span class="srew">'+(m.baseline_reward||0).toFixed(1)+'</span><span class="sphase" style="background:'+(pc[m.phase]||'#6b7280')+'22;color:'+(pc[m.phase]||'#6b7280')+'">'+(m.phase||'')+'</span>'+(m.step===step+1?'<span style="font-size:8px;color:var(--primary)">← next</span>':'')+'</div>';
+  }); if(curve.milestones.length>20) html+='<div style="color:var(--dim);font-size:9px;padding:4px">…+'+((curve.milestones.length)-20)+' more</div>'; }
+  else html+='<span style="color:var(--dim)">No curve data</span>';
+  html+='</div></div><div><h5>Referral History</h5><div class="detail-hist">';
+  if(hist&&hist.history&&hist.history.length){ hist.history.slice(0,20).forEach(h=>{html+='<div class="hist-item">'+(h.timestamp||'').slice(0,10)+' +'+(h.count||1)+' referral'+(h.count>1?'s':'')+'</div>'}); if(hist.history.length>20)html+='<div style="color:var(--dim)">…+'+(hist.history.length-20)+' more</div>'; }
+  else html+='<span style="color:var(--dim)">No referrals confirmed yet</span>';
+  html+='</div></div></div>';
+  if(prog) html+='<div style="margin-top:8px;font-size:9px;color:var(--dim)">Status: <span style="color:'+(prog.status==='active'?'var(--accent)':'var(--danger)')+'">'+esc2(prog.status)+'</span> | Step: '+prog.current_step+' | Unit: '+esc2(prog.reward_unit)+' | Pen: '+((1-prog.penalty_factor)*100).toFixed(0)+'% | Updated: '+(prog.updated_at||'').slice(0,16)+'</div>';
+  if(prog&&prog.reasoning) html+='<div style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.4;padding:6px 8px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">'+esc2(prog.reasoning)+'</div>';
+  return html;
+}
+async function manualBump(uid) {
+  const btn=event.target; btn.disabled=true; btn.textContent='…';
+  try{ const r=await fetch('/v1/referral/confirm/'+uid,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({count:1,timestamp:new Date().toISOString()})});
+    if(r.ok){delete _detailCache[uid];loadUserTracking()}else{btn.textContent='dup';setTimeout(()=>{btn.textContent='+1';btn.disabled=false},2000)}
+  }catch(e){btn.textContent='err';setTimeout(()=>{btn.textContent='+1';btn.disabled=false},2000)}
+}
+
+/* User curve overlay in main */
+let _designerState = null;
+function renderUserCurve(uid, curve, prog) {
+  if (!_designerState) _designerState = document.getElementById('chartGrid').innerHTML;
+  document.getElementById('chartGrid').innerHTML = '<div style="width:100%;height:100%;position:relative"><canvas id="userCanvas"></canvas></div>';
+  document.getElementById('saveBtn').textContent='← Back'; document.getElementById('saveBtn').classList.add('saved');
+  document.getElementById('saveBtn').onclick = restoreDesignerView;
+  setTimeout(() => {
+    const milestones = curve.milestones||[], currentStep=prog?prog.referrals_completed:0, target=prog?prog.referrals_target:0;
+    const phaseColors={hook:'#10b981',valley:'#f59e0b',surge:'#ef4444',plateau:'#8b5cf6'};
+    new Chart(document.getElementById('userCanvas'), {
+      type:'bar', data:{labels:milestones.map(m=>m.step),datasets:[{label:'Reward',data:milestones.map(m=>m.baseline_reward||0),backgroundColor:milestones.map(m=>(phaseColors[m.phase]||'#6b7280')+'99'),borderColor:milestones.map(m=>phaseColors[m.phase]||'#6b7280'),borderWidth:1.5,borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{annotation:{annotations:{nextStep:{type:'line',xMin:currentStep+0.5,xMax:currentStep+0.5,borderColor:'#3b82f6',borderWidth:2,borderDash:[6,4],label:{display:true,content:'You:'+(currentStep+1),position:'start',backgroundColor:'#3b82f6',color:'#fff',font:{size:10}}},pcuTarget:{type:'line',xMin:target-0.5,xMax:target-0.5,borderColor:'#ec4899',borderWidth:2,label:{display:!!target,content:'Target:'+target,position:'end',backgroundColor:'#ec4899',color:'#fff',font:{size:10}}}}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e293b'}}}}});
+  }, 100);
+}
+function restoreDesignerView() {
+  if (!_designerState) return;
+  document.getElementById('chartGrid').innerHTML = _designerState;
+  _designerState = null;
+  document.getElementById('saveBtn').textContent='Save to .env'; document.getElementById('saveBtn').classList.remove('saved');
+  document.getElementById('saveBtn').onclick = null;
+  document.getElementById('saveBtn').addEventListener('click', saveSettingsHandler);
+  debounceAll();
+};
+
+/* ── Run Pipeline tab ── */
+function buildPipelinePanel() {
+  const el=document.getElementById('panel-pipeline'); if(!el) return;
+  el.innerHTML='<div class="pipe-disclaimer"><b>Production note:</b> In production, user data is ingested from PostgreSQL and enriched via Twitter/X social API. This uses manually-entered or auto-generated data for local testing.</div><div class="pipe-form" id="pipeForm"><div class="field"><label>User ID</label><input id="puid" type="text" value="demo_user_01" style="font-weight:600;color:var(--primary)"></div><div class="field"><label>Twitter followers</label><input id="pfollowers" type="number" value="2500" min="0"></div><div class="field"><label>Engagement rate</label><input id="pengage" type="number" value="0.045" min="0" max="1" step="0.001"></div><div class="field"><label>Twitter following</label><input id="pfollowing" type="number" value="800" min="0"></div><div class="field"><label>Account age (days)</label><input id="page" type="number" value="420" min="0"></div><div class="field"><label>Sessions (90d)</label><input id="psessions" type="number" value="75" min="0"></div><div class="field"><label>Features adopted</label><input id="pfeatures" type="number" value="7" min="0"></div><div class="field"><label>Positive outcomes</label><input id="poutcomes" type="number" value="12" min="0"></div><div class="field"><label>Support tickets (90d)</label><input id="ptickets" type="number" value="1" min="0"></div><div class="field"><label>Tickets resolved</label><input id="presolved" type="number" value="1" min="0"></div><div class="field"><label>Activity trend</label><select id="ptrend"><option value="rising">rising</option><option value="stable" selected>stable</option><option value="declining">declining</option></select></div></div><div class="pipe-btn-row"><button class="gen-btn" onclick="generateRandomUser()">Random</button><button class="run-btn" id="runBtn" onclick="runPipeline()">Run Pipeline</button></div><div class="pipe-result" id="pipeResult"></div>';
+}
+function generateRandomUser() {
+  const archs=[{name:'Influencer',f:5000,e:0.07,fn:2000,a:800,s:120,fe:12,o:30,t:1,r:1,tr:'rising'},{name:'Broadcaster',f:8000,e:0.12,fn:5000,a:200,s:30,fe:3,o:5,t:4,r:2,tr:'stable'},{name:'Fan',f:200,e:0.02,fn:400,a:600,s:150,fe:10,o:25,t:0,r:0,tr:'rising'},{name:'Newcomer',f:50,e:0.005,fn:100,a:14,s:5,fe:1,o:2,t:3,r:1,tr:'declining'}];
+  const a=archs[Math.floor(Math.random()*archs.length)];
+  const j=(v,p)=>Math.max(0,Math.round(v*(1+(Math.random()-0.5)*p*2))),jf=(v,p)=>Math.max(0,+(v*(1+(Math.random()-0.5)*p*2)).toFixed(4));
+  document.getElementById('puid').value='demo_'+a.name.toLowerCase()+'_'+Date.now().toString(36);
+  document.getElementById('pfollowers').value=j(a.f,0.4); document.getElementById('pengage').value=jf(a.e,0.3); document.getElementById('pfollowing').value=j(a.fn,0.5);
+  document.getElementById('page').value=j(a.a,0.3); document.getElementById('psessions').value=j(a.s,0.4); document.getElementById('pfeatures').value=j(a.fe,0.3);
+  document.getElementById('poutcomes').value=j(a.o,0.4); document.getElementById('ptickets').value=j(a.t,0.5); document.getElementById('presolved').value=a.r>=a.t?a.t:j(a.r,0.3);
+  document.getElementById('ptrend').value=a.tr;
+}
+async function runPipeline() {
+  const btn=document.getElementById('runBtn'),res=document.getElementById('pipeResult'); btn.disabled=true; btn.textContent='Running…';
+  const uid=document.getElementById('puid').value||'demo_user';
+  try{const r=await fetch('/v1/referral/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,data:{profile:{twitter_followers:Number(document.getElementById('pfollowers').value)||0,twitter_engagement_rate:Number(document.getElementById('pengage').value)||0,twitter_following:Number(document.getElementById('pfollowing').value)||0,account_age_days:Number(document.getElementById('page').value)||0,total_product_sessions_90d:Number(document.getElementById('psessions').value)||0,feature_adoption_count:Number(document.getElementById('pfeatures').value)||0,positive_outcome_events:Number(document.getElementById('poutcomes').value)||0,support_tickets_90d:Number(document.getElementById('ptickets').value)||0,support_tickets_resolved:Number(document.getElementById('presolved').value)||0,recent_activity_trend:document.getElementById('ptrend').value}}})});
+    const job=await r.json();
+    if(job.job_id){renderAgentFlow({job_id:job.job_id,status:'queued',agent_status:[]});pollJob(job.job_id,uid,Date.now())}
+    else{res.innerHTML='<div class="res-err">Failed: '+JSON.stringify(job)+'</div>';btn.disabled=false;btn.textContent='▶ Run Pipeline'}
+  }catch(e){res.innerHTML='<div class="res-err">Error: '+e.message+'</div>';btn.disabled=false;btn.textContent='▶ Run Pipeline'}
+}
+async function pollJob(jobId,uid,started) {
+  const res=document.getElementById('pipeResult');
+  for(let i=0;i<80;i++){if(i>0)await new Promise(r=>setTimeout(r,1500));
+    try{const r=await fetch('/v1/referral/results/'+jobId);const d=await r.json();const elapsed=Math.floor((Date.now()-started)/1000);
+      if(d.status==='completed'||d.status==='failed'){renderPipelineResult(d,uid);document.getElementById('runBtn').disabled=false;document.getElementById('runBtn').textContent='▶ Run Pipeline';return}
+      renderAgentFlow(d,elapsed)}catch(e){res.innerHTML+='<div style="font-size:9px;color:var(--surge);margin-top:2px">Retry '+(i+1)+'…</div>'}
+  }res.innerHTML+='<div class="res-err">Pipeline timed out (120s)</div>';document.getElementById('runBtn').disabled=false;document.getElementById('runBtn').textContent='▶ Run Pipeline';
+}
+function renderAgentFlow(d,elapsed) {
+  const agents=[{id:1,name:'Signal Parser',desc:'Ingest & normalize user data'},{id:2,name:'Score Calculator',desc:'Compute Reach, Advocacy, PCU, Tier'},{id:3,name:'Ask Orchestrator',desc:'Evaluate gates & penalty factor'},{id:4,name:'Curve Designer',desc:'Design 4-phase reward curve'}];
+  const statusMap={};(d.agent_status||[]).forEach(s=>{statusMap[s.agent]=s.status});
+  let html='<div class="res-box" style="margin-bottom:4px"><div class="res-row"><span class="rlbl">Job</span><span class="rval">'+esc2(d.job_id||'')+'</span></div><div class="res-row"><span class="rlbl">Status</span><span class="rval" style="color:var(--valley)">'+esc2(d.status)+'</span></div>';
+  if(elapsed!=null)html+='<div class="res-row"><span class="rlbl">Elapsed</span><span class="rval">'+elapsed+'s</span></div>'; html+='</div><div style="display:flex;flex-direction:column;gap:3px">';
+  agents.forEach((a,idx)=>{const st=statusMap[a.name]||'waiting',icon=st==='done'?'✓':st==='running'?'⟳':'○',color=st==='done'?'var(--accent)':st==='running'?'var(--primary)':'var(--dim)',bg=st==='done'?'rgba(16,185,129,0.08)':st==='running'?'rgba(59,130,246,0.08)':'transparent',anim=st==='running'?'animation:spin 1.2s linear infinite;':'';
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;background:'+bg+';border:1px solid '+(st==='done'?'rgba(16,185,129,0.2)':st==='running'?'rgba(59,130,246,0.2)':'var(--border)')+'"><span style="font-size:14px;color:'+color+';'+anim+';display:inline-block;width:20px;text-align:center">'+icon+'</span><div style="flex:1"><div style="font-size:10px;font-weight:600;color:'+color+'">'+a.name+'</div><div style="font-size:8px;color:var(--dim)">'+a.desc+'</div></div><span style="font-size:8px;color:'+color+';font-weight:600">'+st.toUpperCase()+'</span></div>';
+    if(idx<3){const cc=statusMap[agents[idx+1].name]==='running'||statusMap[a.name]==='done'?'var(--primary)':'var(--dim)';html+='<div style="width:1px;height:6px;background:'+cc+';margin-left:17px"></div>'}
+  }); html+='</div>'; document.getElementById('pipeResult').innerHTML=html;
+}
+function renderPipelineResult(d,uid) {
+  const res=document.getElementById('pipeResult'); if(d.status==='failed'){res.innerHTML='<div class="res-err"><b>Failed:</b> '+esc2(d.error||'unknown')+'</div>';return}
+  renderAgentFlow(d);
+  const pen=d.penalty_factor!=null?((1-d.penalty_factor)*100).toFixed(0)+'%':'—';
+  res.innerHTML+='<div class="res-box" style="margin-top:6px"><div class="res-row"><span class="rlbl">User</span><span class="rval">'+esc2(uid)+'</span></div><div class="res-row"><span class="rlbl">Reach</span><span class="rval">'+(d.reach_score!=null?d.reach_score:'—')+'</span></div><div class="res-row"><span class="rlbl">Advocacy</span><span class="rval">'+(d.advocacy_score!=null?d.advocacy_score:'—')+'</span></div><div class="res-row"><span class="rlbl">Penalty</span><span class="rval">'+pen+'</span></div><div class="res-row"><span class="rlbl">Urgency</span><span class="rval">'+(d.urgency!=null?d.urgency.toFixed(2):'—')+'</span></div></div><div style="display:flex;gap:2px;margin-top:4px"><button style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:4px;padding:4px 0;font-size:10px;cursor:pointer" onclick="document.querySelector(\'[data-tab=tracking]\').click()">View in Tracking</button><button style="flex:1;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:4px 0;font-size:10px;cursor:pointer" onclick="window.open(\'/user/'+uid+'\',\'_blank\')">Open User View</button></div>';
+}
+
+(async () => {
+  const r = await fetch('/api/curve/config');
+  buildPanels(await r.json());
+})();
+</script>
+</body>
+</html>

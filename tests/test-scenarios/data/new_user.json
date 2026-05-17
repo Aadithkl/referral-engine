@@ -1,0 +1,32 @@
+{
+  "user_id": "new_user_002",
+  "source": "product_backend",
+  "data": {
+    "events": [
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-14T10:00:00Z"},
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-13T10:00:00Z"}
+    ],
+    "profile": {
+      "name": "Bob NewUser",
+      "email": "bob@example.com",
+      "created_at": "2026-04-30T00:00:00Z",
+      "last_active_at": "2026-05-14T10:00:00Z",
+      "account_age_days": 14,
+      "total_product_sessions_90d": 5,
+      "feature_adoption_count": 1,
+      "support_tickets_90d": 0,
+      "support_tickets_resolved": 0,
+      "positive_outcome_events": 0,
+      "recent_activity_trend": "stable",
+      "twitter_handle": null,
+      "twitter_followers": 0,
+      "twitter_following": 0,
+      "twitter_tweet_count": 0,
+      "twitter_engagement_rate": 0.0,
+      "prior_referrals_total": 0,
+      "last_asked_at": null,
+      "last_declined_at": null
+    }
+  },
+  "callback_url": null
+}

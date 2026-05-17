@@ -1,0 +1,35 @@
+{
+  "user_id": "declining_user_005",
+  "source": "product_backend",
+  "data": {
+    "events": [
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-05-10T15:00:00Z"},
+      {"event_type": "support_ticket", "payload": {"status": "open"}, "created_at": "2026-05-08T10:00:00Z"},
+      {"event_type": "support_ticket", "payload": {"status": "open"}, "created_at": "2026-05-01T09:00:00Z"},
+      {"event_type": "login", "payload": {"count": 1}, "created_at": "2026-04-28T14:00:00Z"},
+      {"event_type": "feature_used", "payload": {"feature": "dashboard", "count": 1}, "created_at": "2026-04-20T11:00:00Z"}
+    ],
+    "profile": {
+      "name": "Eve Declining",
+      "email": "eve@example.com",
+      "created_at": "2024-01-05T00:00:00Z",
+      "last_active_at": "2026-05-10T15:00:00Z",
+      "account_age_days": 860,
+      "total_product_sessions_90d": 4,
+      "feature_adoption_count": 1,
+      "support_tickets_90d": 2,
+      "support_tickets_resolved": 0,
+      "positive_outcome_events": 0,
+      "recent_activity_trend": "declining",
+      "twitter_handle": "eve_decline",
+      "twitter_followers": 30,
+      "twitter_following": 200,
+      "twitter_tweet_count": 45,
+      "twitter_engagement_rate": 0.004,
+      "prior_referrals_total": 1,
+      "last_asked_at": "2026-04-15T10:00:00Z",
+      "last_declined_at": "2026-05-08T16:00:00Z"
+    }
+  },
+  "callback_url": null
+}
