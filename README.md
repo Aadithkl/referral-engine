@@ -87,11 +87,11 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 # Server Configuration
 HOST=0.0.0.0
-PORT=8000
+PORT=3000
 DEV=1  # Set to 0 in production to disable auto-reload
 
 # Landing Page Configuration
-LANDING_PAGE_DIR=/path/to/landing/page  # Optional, defaults to C:\Users\Aadith\referral-engine on Windows
+LANDING_PAGE_DIR=./static
 ```
 
 ## Usage
@@ -103,7 +103,7 @@ LANDING_PAGE_DIR=/path/to/landing/page  # Optional, defaults to C:\Users\Aadith\
 python start.py
 ```
 
-The server will automatically detect an available port (default starting at 8000) and display the URL.
+The server will automatically detect an available port (default 3000) and display the URL.
 
 ### Production Mode
 
@@ -114,7 +114,7 @@ DEV=0 python start.py
 Or using uvicorn directly:
 
 ```bash
-uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 8000
+uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 3000
 ```
 
 ## API Endpoints
@@ -237,9 +237,9 @@ The project follows standard Python formatting conventions. Consider using tools
 |----------|-------------|---------|
 | `OPENAI_API_KEY` | OpenAI API key for LLM features | *(required for AI features)* |
 | `HOST` | Server host | `0.0.0.0` |
-| `PORT` | Server port | Auto-detected (starting at 8000) |
+| `PORT` | Server port | `3000` |
 | `DEV` | Enable development mode (auto-reload) | `1` |
-| `LANDING_PAGE_DIR` | Path to landing page assets | `C:\Users\Aadith\referral-engine` |
+| `LANDING_PAGE_DIR` | Path to landing page assets | `./static` |
 | `BASE_REWARD` | Base reward amount for curve calculations | `100.0` |
 | `QUADRANT_REACH_SPLIT` | Reach score threshold for quadrant | `50` |
 | `QUADRANT_ADVOCACY_SPLIT` | Advocacy score threshold for quadrant | `50` |
@@ -253,30 +253,6 @@ Agent behaviors can be customized through:
 - `src/referral_engine/config/tasks.yaml` - Task definitions and workflows
 
 ## Deployment
-
-### Docker (Optional)
-
-Create a Dockerfile:
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY . .
-RUN pip install -e .
-
-EXPOSE 8000
-ENV HOST=0.0.0.0 PORT=8000 DEV=0
-
-CMD ["python", "start.py"]
-```
-
-Build and run:
-
-```bash
-docker build -t referral-engine .
-docker run -p 8000:8000 referral-engine
-```
 
 ### Environment-Specific Configuration
 
