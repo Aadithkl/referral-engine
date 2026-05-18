@@ -222,6 +222,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   document.querySelectorAll('aside .panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + t.dataset.tab).classList.add('active');
   if (t.dataset.tab === 'tracking') loadUserTracking();
+  if (t.dataset.tab === 'curve') showTestStageModal(null);
   if (t.dataset.tab === 'pipeline') showTestStageModal(null);
 }));
 
