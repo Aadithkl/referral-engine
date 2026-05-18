@@ -223,7 +223,6 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   document.getElementById('panel-' + t.dataset.tab).classList.add('active');
   if (t.dataset.tab === 'tracking') loadUserTracking();
   if (t.dataset.tab === 'curve') showTestStageModal(null);
-  if (t.dataset.tab === 'pipeline') showTestStageModal(null);
 }));
 
 function buildPanels(cfg) {
@@ -532,10 +531,7 @@ function generateRandomUser() {
   document.getElementById('poutcomes').value=j(a.o,0.4); document.getElementById('ptickets').value=j(a.t,0.5); document.getElementById('presolved').value=a.r>=a.t?a.t:j(a.r,0.3);
   document.getElementById('ptrend').value=a.tr;
 }
-function runPipeline() {
-  showTestStageModal(() => _runPipeline());
-}
-async function _runPipeline() {
+async function runPipeline() {
   const btn=document.getElementById('runBtn'),res=document.getElementById('pipeResult'); btn.disabled=true; btn.textContent='Running…';
   const uid=document.getElementById('puid').value||'demo_user';
   try{const r=await fetch('/v1/referral/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,data:{profile:{twitter_followers:Number(document.getElementById('pfollowers').value)||0,twitter_engagement_rate:Number(document.getElementById('pengage').value)||0,twitter_following:Number(document.getElementById('pfollowing').value)||0,account_age_days:Number(document.getElementById('page').value)||0,total_product_sessions_90d:Number(document.getElementById('psessions').value)||0,feature_adoption_count:Number(document.getElementById('pfeatures').value)||0,positive_outcome_events:Number(document.getElementById('poutcomes').value)||0,support_tickets_90d:Number(document.getElementById('ptickets').value)||0,support_tickets_resolved:Number(document.getElementById('presolved').value)||0,recent_activity_trend:document.getElementById('ptrend').value}}})});
