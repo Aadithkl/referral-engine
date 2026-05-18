@@ -294,6 +294,36 @@ DEV=1 python start.py
 DEV=0 python start.py
 ```
 
+## Deployment
+
+### Docker
+
+```bash
+docker build -t referral-engine .
+docker run -p 3000:3000 \
+  -e OPENAI_API_KEY=your_key \
+  -e PORT=3000 \
+  referral-engine
+```
+
+### CreateOS / Container Platforms
+
+Push to GitHub and deploy from the repo. The Dockerfile handles everything. Required env vars:
+
+| Variable | Required | Default | Notes |
+|----------|----------|---------|-------|
+| `OPENAI_API_KEY` | **Yes** | — | LLM API key for agent pipeline |
+| `PORT` | No | 3000 | Server port (CreateOS sets this) |
+| `DB_PATH` | No | `/tmp/referral_engine.db` | Writable DB path |
+| `LANDING_PAGE_DIR` | No | `/app/static` | Static assets path |
+
+### Manual (pip)
+
+```bash
+pip install .
+LANDING_PAGE_DIR=./static python start.py
+```
+
 ## Contributing
 
 1. Fork the repository

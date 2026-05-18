@@ -20,7 +20,7 @@ from typing import Any
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(_THIS_DIR))
-DB_PATH = os.path.join(_PROJECT_ROOT, "data", "referral_engine.db")
+DB_PATH = os.environ.get("DB_PATH", os.path.join(_PROJECT_ROOT, "data", "referral_engine.db"))
 
 SQL_CREATE = """
 CREATE TABLE IF NOT EXISTS curves (

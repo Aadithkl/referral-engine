@@ -6,9 +6,8 @@ import sys
 import os
 import subprocess
 
-# Landing page directory (configurable via env var)
-DEFAULT_LANDING_DIR = r"C:\Users\Aadith\referral-engine"
-os.environ.setdefault("LANDING_PAGE_DIR", DEFAULT_LANDING_DIR)
+# Landing page directory (overridable via LANDING_PAGE_DIR env var)
+os.environ.setdefault("LANDING_PAGE_DIR", os.path.join(os.path.dirname(__file__) or ".", "static"))
 
 
 def find_free_port(start=8000, max_attempts=20):

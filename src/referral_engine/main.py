@@ -325,7 +325,7 @@ async def health():
 
 # -- Landing page routes --
 
-_LANDING_DIR = os.environ.get("LANDING_PAGE_DIR", r"C:\Users\Aadith\referral-engine")
+_LANDING_DIR = os.environ.get("LANDING_PAGE_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static"))
 
 
 @app.get("/", response_class=HTMLResponse)

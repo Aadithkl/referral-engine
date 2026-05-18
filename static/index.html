@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Referral Engine — Private Beta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="font" href="https://fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2BL9A.woff2" type="font/woff2" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;1,400&family=Instrument+Serif:ital@0;1&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-grain"></div>
+  <div class="splash-content">
+    <span class="splash-brand">referral_engine</span>
+    <span class="splash-eyebrow">PRIVATE BETA</span>
+    <h2 class="splash-headline">Click anywhere to enter</h2>
+    <p class="splash-hint">sound on · scroll experience</p>
+  </div>
+</div>
+
+<svg style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;opacity:0.032;" aria-hidden="true">
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#grain)"/>
+</svg>
+
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-arrow" class="cursor-arrow">&#8964;</div>
+
+<div id="sound-toggle" class="sound-btn on" title="Sound">&#9835; ON</div>
+
+<nav id="nav">
+  <span class="nav-logo">referral_engine</span>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Curve Designer</a>
+    <a href="/overview" class="nav-link">Overview</a>
+    <a href="/users" class="nav-link">User View</a>
+  </div>
+</nav>
+
+<div class="floating-tab">
+  <a href="/dashboard">Open App &rarr;</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: HERO                                                -->
+<!-- ============================================================ -->
+<section id="hero" class="hero">
+  <div class="ambient amb-hero"></div>
+      <video class="hero-video" id="hero-video" src="assets/clip1.mp4" loop muted playsinline></video>
+      <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <span class="eyebrow-pill">PRIVATE BETA</span>
+    <h1 class="split-headline hero-headline">Your referral program is lying to you.</h1>
+    <p class="hero-sub">
+      It treats your most powerful advocates the same as someone who signed up yesterday. Here's exactly what that's costing you.
+    </p>
+    <a href="#pain1" class="btn-primary magnetic"><span>See the problem &rarr;</span></a>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: PAIN 1 — Flat rewards kill momentum                -->
+<!-- ============================================================ -->
+<section id="pain1" class="pain-split">
+  <div class="ambient amb-pain1"></div>
+  <div class="pain-grid">
+    <div class="pain-video-wrap">
+      <div class="video-frame">
+        <video src="assets/clip2.mp4" loop muted playsinline data-video="pain1"></video>
+      </div>
+    </div>
+    <div class="pain-text">
+      <span class="section-num">01</span>
+      <h2 class="split-headline">Flat rewards kill momentum.</h2>
+      <p class="body-text">
+        Your 10th referral earns the same as your 1st. There's no peak to chase, no valley to push through, no psychological engine pulling your users forward. Every step feels identical — so they stop.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: PAIN 2 — Advocate vs Lurker                         -->
+<!-- ============================================================ -->
+<section id="pain2" class="pain-split pain-reversed">
+  <div class="ambient amb-pain2"></div>
+  <div class="pain-grid">
+    <div class="pain-text">
+      <span class="section-num">02</span>
+      <h2 class="split-headline">You can't tell an advocate from a lurker.</h2>
+      <p class="body-text">
+        One of your users has 8,000 followers and a 6% engagement rate. Another has 40 connections and hasn't logged in this month. Your program offers them the exact same deal. One of them is worth 50x the other.
+      </p>
+    </div>
+    <div class="pain-video-wrap">
+      <div class="video-frame">
+        <video src="assets/clip3.mp4" loop muted playsinline data-video="pain2"></video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: THE CURVE                                           -->
+<!-- ============================================================ -->
+<section id="curve" class="curve-section">
+  <div class="ambient amb-curve"></div>
+  <div class="curve-video-top">
+    <div class="video-frame">
+      <video src="assets/clip4.mp4" loop muted playsinline data-video="curve"></video>
+    </div>
+  </div>
+  <div class="curve-layout">
+    <div class="curve-text">
+      <span class="section-num alt-amber">the reward curve</span>
+      <h2 class="split-headline">Not a flat line. A journey.</h2>
+      <p class="body-text">
+        Four phases, designed around the psychology of motivation. The hook gets them started. The valley creates urgency. The surge is the payoff. The plateau keeps them engaged long-term.
+      </p>
+      <div class="curve-phases">
+        <div class="phase-item phase-amber">
+          <span class="phase-num">&copy; Hook</span>
+          <span class="phase-desc">Opens with a reward that feels meaningful</span>
+        </div>
+        <div class="phase-item phase-blue">
+          <span class="phase-num">&reg; Valley</span>
+          <span class="phase-desc">Dips briefly to create forward pull</span>
+        </div>
+        <div class="phase-item phase-teal">
+          <span class="phase-num">&trade; Surge</span>
+          <span class="phase-desc">The peak — the moment they've been building toward</span>
+        </div>
+        <div class="phase-item phase-muted">
+          <span class="phase-num">&lsquo; Plateau</span>
+          <span class="phase-desc">Sustainable reward to maintain engagement</span>
+        </div>
+      </div>
+    </div>
+    <div class="curve-chart-wrap">
+      <div class="chart-container">
+        <canvas id="rewardChart"></canvas>
+      </div>
+      <div class="chart-axis-label x-label">referral step</div>
+      <div class="chart-axis-label y-label">credits earned</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SUNRISE CANVAS                                                 -->
+<!-- ============================================================ -->
+<canvas id="sunrise-canvas"></canvas>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: MECHANICS (DAY THEME)                               -->
+<!-- ============================================================ -->
+<section id="mechanics" data-section="mechanics" class="mechanics-section">
+  <div class="mechanics-content">
+
+    <!-- PART A: Hero text -->
+    <div class="mech-hero">
+      <span class="eyebrow-red">UNDER THE HOOD</span>
+      <h2 class="mech-headline split-headline">Four agents. One pipeline. Fully agentic.</h2>
+      <p class="mech-sub">No mystery boxes. Here's exactly what happens when you submit a user.</p>
+    </div>
+
+    <!-- PART B: Workflow diagram (vertical) -->
+    <div class="wf-vertical">
+
+      <!-- Title + lane labels -->
+      <div class="wf-title">
+        <span class="wf-eyebrow">End-to-End User Workflow</span>
+        <h3 class="wf-title-text">From login to live referral program</h3>
+      </div>
+      <div class="wf-lanes">
+        <span class="wf-lane lane-red">User</span>
+        <span class="wf-lane lane-green">Backend</span>
+        <span class="wf-lane lane-red2">AI Pipeline</span>
+        <span class="wf-lane lane-blue2">Output</span>
+        <span class="wf-lane-key">← colour key</span>
+      </div>
+
+      <!-- STEP 1: Sign In -->
+      <div class="wf-step">
+        <div class="wf-icon-circle wf-ic-red">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b5451b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <div class="wf-step-info">
+          <span class="wf-step-title">Sign In</span>
+          <span class="wf-step-sub">Email or SSO</span>
+        </div>
+        <span class="wf-badge wf-badge-red">User</span>
+      </div>
+
+      <svg class="wf-arrow-down" width="20" height="16" viewBox="0 0 20 16"><line x1="10" y1="0" x2="10" y2="10" stroke="#ccc" stroke-width="1.5"/><polygon points="5,10 10,16 15,10" fill="#ccc"/></svg>
+
+      <!-- STEP 2: Connect X -->
+      <div class="wf-step">
+        <div class="wf-icon-circle wf-ic-dark">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#111"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.263 5.632L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+        </div>
+        <div class="wf-step-info">
+          <span class="wf-step-title">Connect X</span>
+          <span class="wf-step-sub">OAuth 2.0</span>
+        </div>
+        <span class="wf-badge wf-badge-red">User → Backend</span>
+      </div>
+
+      <svg class="wf-arrow-down" width="20" height="16" viewBox="0 0 20 16"><line x1="10" y1="0" x2="10" y2="10" stroke="#ccc" stroke-width="1.5"/><polygon points="5,10 10,16 15,10" fill="#ccc"/></svg>
+
+      <!-- STEP 3: Fetch Profile -->
+      <div class="wf-step">
+        <div class="wf-icon-circle wf-ic-green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d6a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <div class="wf-step-info">
+          <span class="wf-step-title">Fetch Profile</span>
+          <span class="wf-step-sub">Twitter API + Product DB</span>
+        </div>
+        <span class="wf-badge wf-badge-green">Backend</span>
+      </div>
+
+      <svg class="wf-arrow-down" width="20" height="16" viewBox="0 0 20 16"><line x1="10" y1="0" x2="10" y2="10" stroke="#ccc" stroke-width="1.5"/><polygon points="5,10 10,16 15,10" fill="#ccc"/></svg>
+
+      <!-- STEP 4: AI Pipeline (expanded) -->
+      <div class="wf-agent-block">
+        <div class="wf-agent-header">
+          <div class="wf-icon-circle wf-ic-red2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d93025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          </div>
+          <div class="wf-agent-title-wrap">
+            <span class="wf-step-title">AI Pipeline</span>
+            <span class="wf-step-sub">4 agents · 40–90s · async</span>
+          </div>
+          <span class="wf-badge wf-badge-red2">Pipeline</span>
+        </div>
+        <div class="wf-sub-agents">
+          <div class="wf-sub-agent sa-blue">
+            <span class="sa-num">01</span>
+            <span class="sa-name">Signal Parser</span>
+            <span class="sa-model">JSON only</span>
+          </div>
+          <svg class="wf-mini-arrow" width="7" height="7" viewBox="0 0 7 7"><polygon points="0,1 6,3.5 0,6" fill="#ccc"/></svg>
+          <div class="wf-sub-agent sa-red">
+            <span class="sa-num">02</span>
+            <span class="sa-name">Score Calc</span>
+            <span class="sa-model">ReAct tools</span>
+          </div>
+          <svg class="wf-mini-arrow" width="7" height="7" viewBox="0 0 7 7"><polygon points="0,1 6,3.5 0,6" fill="#ccc"/></svg>
+          <div class="wf-sub-agent sa-blue">
+            <span class="sa-num">03</span>
+            <span class="sa-name">Ask Orchest.</span>
+            <span class="sa-model">3-field JSON</span>
+          </div>
+          <svg class="wf-mini-arrow" width="7" height="7" viewBox="0 0 7 7"><polygon points="0,1 6,3.5 0,6" fill="#ccc"/></svg>
+          <div class="wf-sub-agent sa-red">
+            <span class="sa-num">04</span>
+            <span class="sa-name">Curve Design</span>
+            <span class="sa-model">LLM-varied</span>
+          </div>
+        </div>
+      </div>
+
+      <svg class="wf-arrow-down" width="20" height="16" viewBox="0 0 20 16"><line x1="10" y1="0" x2="10" y2="10" stroke="#ccc" stroke-width="1.5"/><polygon points="5,10 10,16 15,10" fill="#ccc"/></svg>
+
+      <!-- STEP 5: Results -->
+      <div class="wf-step">
+        <div class="wf-icon-circle wf-ic-blue2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4e89" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="wf-step-info">
+          <span class="wf-step-title">Results</span>
+          <span class="wf-step-sub">Archetype + Curve</span>
+        </div>
+        <span class="wf-badge wf-badge-blue2">Output</span>
+      </div>
+
+      <svg class="wf-arrow-down" width="20" height="16" viewBox="0 0 20 16"><line x1="10" y1="0" x2="10" y2="10" stroke="#ccc" stroke-width="1.5"/><polygon points="5,10 10,16 15,10" fill="#ccc"/></svg>
+
+      <!-- STEP 6: Live -->
+      <div class="wf-step">
+        <div class="wf-icon-circle wf-ic-green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d6a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="wf-step-info">
+          <span class="wf-step-title">Live</span>
+          <span class="wf-step-sub">Link + Webhook</span>
+        </div>
+        <span class="wf-badge wf-badge-green">Activated</span>
+      </div>
+
+      <!-- Footer -->
+      <div class="wf-footer">
+        Ongoing &rarr; POST /v1/referral/confirm as each invite completes &middot; step tracking + budget management automatic
+        <span class="wf-footer-time">40–90s pipeline</span>
+      </div>
+
+    </div>
+
+    <!-- PART C: Two columns -->
+    <div class="mech-cols">
+      <div class="mech-col">
+        <h3 class="mech-col-title col-red">What we can do now</h3>
+        <ul class="mech-list list-red">
+          <li>Analyze profiles with Twitter + product engagement data</li>
+          <li>Four archetype classifications (Influencer, Broadcaster, Fan, Newcomer)</li>
+          <li>RewardHandler plugin &mdash; integrate your own reward system</li>
+          <li>SQLite persistence, PostgreSQL-ready</li>
+        </ul>
+      </div>
+      <div class="mech-col">
+        <h3 class="mech-col-title col-blue">What's coming</h3>
+        <ul class="mech-list list-blue">
+          <li>Real Twitter OAuth &mdash; connect live profiles</li>
+          <li>PostgreSQL migration for team scale</li>
+          <li>Rate limiting + Redis job queue</li>
+          <li>Team-level permissions + multi-workspace</li>
+          <li>Custom archetype definitions</li>
+          <li>Mobile companion app</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                         -->
+<!-- ============================================================ -->
+<footer class="footer">
+  <span>referral_engine &middot; private beta 2026</span>
+  <span>built by Aadith Narayanan</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
