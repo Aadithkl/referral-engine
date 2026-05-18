@@ -424,7 +424,7 @@ async def get_curve(user_id: str):
 
 
 @app.get("/v1/referral/curves")
-async def list_curves_endpoint(archetype: str = None):
+async def list_curves_endpoint(archetype: str | None = None):
     return await storage.list_curves(archetype)
 
 
@@ -474,6 +474,7 @@ async def confirm_referral(user_id: str, request: Request):
 # -- User-facing routes --
 
 _USER_TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "templates", "user.html")
+_USERS_TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "templates", "users.html")
 
 
 @app.get("/user/{user_id}", response_class=HTMLResponse)
@@ -499,7 +500,6 @@ async def user_status(user_id: str):
 @app.get("/users", response_class=HTMLResponse)
 async def users_page():
     """User search page with live search."""
-    _USERS_TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "templates", "users.html")
     if not os.path.exists(_USERS_TEMPLATE):
         raise HTTPException(404, "Users template not found")
     with open(_USERS_TEMPLATE, "r", encoding="utf-8") as f:
@@ -507,7 +507,7 @@ async def users_page():
 
 
 @app.get("/api/user/progress")
-async def user_progress_list(status: str = None, archetype: str = None, search: str = None):
+async def user_progress_list(status: str | None = None, archetype: str | None = None, search: str | None = None):
     return await storage.list_progress(status, archetype, search)
 
 

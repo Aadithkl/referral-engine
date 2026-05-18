@@ -10,7 +10,7 @@ import subprocess
 os.environ.setdefault("LANDING_PAGE_DIR", os.path.join(os.path.dirname(__file__) or ".", "static"))
 
 
-def find_free_port(start=8000, max_attempts=20):
+def find_free_port(start=3000, max_attempts=20):
     """Auto-detect an available port starting from `start`."""
     for port in range(start, start + max_attempts):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -27,7 +27,7 @@ crewai run
 # OR: python src/referral_engine/main.py
 
 # 5. Start FastAPI server
-uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 3000 --reload
 ```
 
 ## Configuration (.env)

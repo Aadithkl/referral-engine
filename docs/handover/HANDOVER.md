@@ -20,16 +20,16 @@ python src\referral_engine\tests\test_models.py
 python tests\test-scenarios\run_demo.py
 
 # Start the server with dashboard
-uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 8000
+uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 3000
 
 # Open curve designer dashboard
-# → http://localhost:8000/dashboard
+# → http://localhost:3000/dashboard
 
 # API call example
-curl -X POST http://localhost:8000/v1/referral/analyze \
+curl -X POST http://localhost:3000/v1/referral/analyze \
   -H "Content-Type: application/json" \
   -d '{"user_id":"user_123","data":{"profile":{"twitter_followers":5000,"twitter_engagement_rate":0.052}}}'
-curl http://localhost:8000/v1/referral/results/job_<id>
+curl http://localhost:3000/v1/referral/results/job_<id>
 ```
 
 **API key:** `opencode-go/kimi-k2.6` via OpenCode Go at `https://opencode.ai/zen/go/v1`

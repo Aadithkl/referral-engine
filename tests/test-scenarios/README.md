@@ -22,7 +22,7 @@ python src\referral_engine\tests\test_models.py
 python tests\test-scenarios\run_demo.py
 
 # 5. Test with FastAPI server (needs API key in .env)
-# Terminal 1: uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 8000
+# Terminal 1: uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 3000
 # Terminal 2: .\tests\test-scenarios\test_curl.ps1
 ```
 

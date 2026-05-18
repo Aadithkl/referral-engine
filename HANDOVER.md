@@ -2,7 +2,7 @@
 
 **Path:** `D:\referral_engine`
 **Last updated:** 2026-05-16
-**Server:** `http://127.0.0.1:8000`
+**Server:** `http://127.0.0.1:3000`
 
 ---
 
@@ -278,7 +278,7 @@ NEWCOMER_PEAK_RATIO=2.0      NEWCOMER_POST_CAP=1.2
 
 ```powershell
 cd D:\referral_engine\src
-D:\referral_engine\.venv\Scripts\python.exe -m uvicorn referral_engine.main:app --host 127.0.0.1 --port 8000
+D:\referral_engine\.venv\Scripts\python.exe -m uvicorn referral_engine.main:app --host 127.0.0.1 --port 3000
 ```
 
 **Running tests:**

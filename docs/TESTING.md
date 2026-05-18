@@ -213,20 +213,20 @@ flow.kickoff(inputs={
 ```bash
 # Terminal 1: Start server
 cd D:\referral_engine
-uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 8000
+uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 3000
 
 # Terminal 2: Test endpoints
 ```
 
 ### Health check
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:3000/health
 # → {"status":"ok"}
 ```
 
 ### Submit analysis
 ```bash
-curl -X POST http://localhost:8000/v1/referral/analyze \
+curl -X POST http://localhost:3000/v1/referral/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user_123",
@@ -242,7 +242,7 @@ curl -X POST http://localhost:8000/v1/referral/analyze \
 
 ### Poll results
 ```bash
-curl http://localhost:8000/v1/referral/results/job_abc123def456
+curl http://localhost:3000/v1/referral/results/job_abc123def456
 # → {"job_id":"job_abc123def456","status":"completed","user_id":"user_123",...}
 ```
 
@@ -258,7 +258,7 @@ Full E2E test checklist:
 - [ ] Test events in `user_events` table (90 days)
 - [ ] Twitter OAuth configured (optional for MVP)
 - [ ] `OPENAI_API_KEY` set
-- [ ] Server running on port 8000
+- [ ] Server running on port 3000
 - [ ] `POST /v1/referral/analyze` returns `job_id`
 - [ ] `GET /v1/referral/results/{job_id}` returns completed plan
 - [ ] Webhook fires to `callback_url` (if set)

@@ -326,7 +326,7 @@ This runs all 6 personas through the core math and guardrails, validating expect
 ```powershell
 cd D:\referral_engine
 # Terminal 1
-uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 8000
+uvicorn src.referral_engine.main:app --host 0.0.0.0 --port 3000
 
 # Terminal 2
 .\tests\test-scenarios\test_curl.ps1
