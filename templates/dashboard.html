@@ -526,11 +526,11 @@ async function runPipeline() {
 }
 async function pollJob(jobId,uid,started) {
   const res=document.getElementById('pipeResult');
-  for(let i=0;i<80;i++){if(i>0)await new Promise(r=>setTimeout(r,1500));
+  for(let i=0;i<200;i++){if(i>0)await new Promise(r=>setTimeout(r,1500));
     try{const r=await fetch('/v1/referral/results/'+jobId);const d=await r.json();const elapsed=Math.floor((Date.now()-started)/1000);
       if(d.status==='completed'||d.status==='failed'){renderPipelineResult(d,uid);document.getElementById('runBtn').disabled=false;document.getElementById('runBtn').textContent='▶ Run Pipeline';return}
       renderAgentFlow(d,elapsed)}catch(e){res.innerHTML+='<div style="font-size:9px;color:var(--surge);margin-top:2px">Retry '+(i+1)+'…</div>'}
-  }res.innerHTML+='<div class="res-err">Pipeline timed out (120s)</div>';document.getElementById('runBtn').disabled=false;document.getElementById('runBtn').textContent='▶ Run Pipeline';
+  }res.innerHTML+='<div class="res-err">Pipeline timed out (300s)</div>';document.getElementById('runBtn').disabled=false;document.getElementById('runBtn').textContent='▶ Run Pipeline';
 }
 function renderAgentFlow(d,elapsed) {
   const agents=[{id:1,name:'Signal Parser',desc:'Ingest & normalize user data'},{id:2,name:'Score Calculator',desc:'Compute Reach, Advocacy, PCU, Tier'},{id:3,name:'Ask Orchestrator',desc:'Evaluate gates & penalty factor'},{id:4,name:'Curve Designer',desc:'Design 4-phase reward curve'}];
