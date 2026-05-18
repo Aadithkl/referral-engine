@@ -131,7 +131,6 @@
 
 <header>
   <span class="tab active" data-tab="curve">Curve Designer</span>
-  <span class="tab" data-tab="setup">Test Inputs</span>
   <span class="tab" data-tab="tracking">User Tracking</span>
   <span class="tab" data-tab="pipeline">Run Pipeline</span>
   <span class="spacer"></span>
@@ -253,21 +252,6 @@ function buildPanels(cfg) {
     const comp = document.createElement('div'); comp.className='computed'; block.appendChild(comp);
     pc.appendChild(block);
   });
-
-  document.getElementById('panel-setup').innerHTML = '';
-  document.getElementById('panel-setup').appendChild(hdr('Test Inputs'));
-  const g1 = document.createElement('div'); g1.className='group setup-bg';
-  const badge = document.createElement('div'); badge.className='badge'; badge.textContent='input only';
-  g1.appendChild(badge);
-  cfg.test_fields.forEach(f => g1.appendChild(buildFieldRow(f)));
-  document.getElementById('panel-setup').appendChild(g1);
-
-  if (cfg.thresholds && cfg.thresholds.length) {
-    document.getElementById('panel-setup').appendChild(hdr('Raw Thresholds'));
-    const g2 = document.createElement('div'); g2.className='group';
-    cfg.thresholds.forEach(t => g2.appendChild(buildGateRow(t)));
-    document.getElementById('panel-setup').appendChild(g2);
-  }
 
   document.getElementById('panel-tracking').innerHTML = '<div class="group" style="padding:12px 14px;color:var(--muted);font-size:11px" id="trackingContent">Select tab to load…</div>';
   buildPipelinePanel();
@@ -568,6 +552,7 @@ function renderPipelineResult(d,uid) {
 (async () => {
   const r = await fetch('/api/curve/config');
   buildPanels(await r.json());
+  showTestStageModal(null);
 })();
 </script>
 </body>
