@@ -1,4 +1,5 @@
 .env
+UPDATE.md
 __pycache__/
 lib/
 .DS_Store
