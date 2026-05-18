@@ -1,7 +1,7 @@
 """Tests for core deterministic modules — no LLM or API key required."""
 
-import sys
-sys.path.insert(0, 'D:/referral_engine/src')
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..'))
 
 from referral_engine.core.scoring_formulas import compute_reach, compute_advocacy, compute_pcu
 from referral_engine.core.tier_mapper import classify_tier, classify_quadrant

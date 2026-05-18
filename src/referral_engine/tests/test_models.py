@@ -1,7 +1,7 @@
 """Tests for guardrails and models — no LLM or API key required."""
 
-import sys
-sys.path.insert(0, 'D:/referral_engine/src')
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..'))
 
 from referral_engine.guardrails import (
     validate_no_pii, validate_score_range, validate_ask_decision, validate_curve_budget,

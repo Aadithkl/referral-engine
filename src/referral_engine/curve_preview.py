@@ -175,33 +175,36 @@ def parse_overrides(params: dict[str, str]) -> dict[str, Any]:
 
 
 def save_settings(data: dict[str, Any]) -> dict:
-    """Write quadrant curve params to .env. Only updates keys that already exist."""
-    if not os.path.exists(ENV_PATH):
-        return {"ok": False, "error": f".env not found at {ENV_PATH}"}
+    """Write quadrant curve params to .env. Best-effort — always updates in-memory settings."""
+    persisted = False
+    if os.path.exists(ENV_PATH):
+        try:
+            with open(ENV_PATH) as f:
+                lines = f.readlines()
 
-    with open(ENV_PATH) as f:
-        lines = f.readlines()
+            updates = {k: str(int(v) if isinstance(v, float) and v == int(v) else v) for k, v in data.items() if k in _all_quadrant_keys()}
 
-    updates = {k: str(int(v) if isinstance(v, float) and v == int(v) else v) for k, v in data.items() if k in _all_quadrant_keys()}
+            updated_lines = []
+            for line in lines:
+                stripped = line.strip()
+                if "=" in stripped and not stripped.startswith("#"):
+                    key = stripped.split("=")[0].strip()
+                    if key in updates:
+                        updated_lines.append(f"{key}={updates[key]}\n")
+                        del updates[key]
+                        continue
+                updated_lines.append(line)
 
-    updated_lines = []
-    for line in lines:
-        stripped = line.strip()
-        if "=" in stripped and not stripped.startswith("#"):
-            key = stripped.split("=")[0].strip()
-            if key in updates:
-                updated_lines.append(f"{key}={updates[key]}\n")
-                del updates[key]
-                continue
-        updated_lines.append(line)
-
-    with open(ENV_PATH, "w") as f:
-        f.writelines(updated_lines)
+            with open(ENV_PATH, "w") as f:
+                f.writelines(updated_lines)
+            persisted = True
+        except OSError:
+            pass
 
     for key, value in data.items():
         if hasattr(settings, key):
             setattr(settings, key, type(getattr(settings, key))(value))
-    return {"ok": True, "saved": list(data.keys())}
+    return {"ok": True, "saved": list(data.keys()), "persisted_to_disk": persisted}
 
 
 def _all_quadrant_keys() -> set[str]:

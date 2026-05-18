@@ -8,10 +8,10 @@ COPY . .
 
 RUN pip install --no-cache-dir .
 
-RUN mkdir -p /tmp
+RUN mkdir -p /data /tmp
 
 ENV LANDING_PAGE_DIR=/app/static
-ENV DB_PATH=/tmp/referral_engine.db
+ENV DB_PATH=/data/referral_engine.db
 
 EXPOSE 3000
 

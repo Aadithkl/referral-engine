@@ -565,9 +565,10 @@ async def overview_data():
 def _run_flow_sync(flow: ReferralFlow, callback_url: str | None):
     """Run the referral flow in a background thread."""
     log = logging.getLogger("referral_engine")
+    job_id = flow.state.job_id
     try:
         flow.kickoff(inputs={})
-        log.info(f"Flow complete: {flow.state.job_id} status={flow.state.status} agents={len(_agent_status.get(flow.state.job_id, []))}")
+        log.info(f"Flow complete: {job_id} status={flow.state.status} agents={len(_agent_status.get(job_id, []))}")
         if flow.state.status == "completed":
             loop = asyncio.new_event_loop()
             loop.run_until_complete(_persist_from_state(flow.state))
@@ -577,9 +578,16 @@ def _run_flow_sync(flow: ReferralFlow, callback_url: str | None):
             loop.run_until_complete(webhook_notify(callback_url, flow.state.model_dump_json()))
             loop.close()
     except Exception as e:
-        log.warning(f"Flow failed: {flow.state.job_id} error={e}")
+        log.warning(f"Flow failed: {job_id} error={e}")
         flow.state.status = "failed"
         flow.state.error = str(e)
+    finally:
+        threading.Timer(300, lambda: _cleanup_job(job_id)).start()
+
+
+def _cleanup_job(job_id: str):
+    _jobs.pop(job_id, None)
+    _agent_status.pop(job_id, None)
 
 
 async def _persist_from_state(state: ReferralState):

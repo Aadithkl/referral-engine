@@ -1,6 +1,6 @@
 """Backfill reasoning for all users without it."""
-import sys, asyncio
-sys.path.insert(0, 'D:/referral_engine/src')
+import sys, os, asyncio
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
 from referral_engine import storage
 
 async def main():

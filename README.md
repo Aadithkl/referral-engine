@@ -276,9 +276,17 @@ DEV=0 python start.py
 
 ```bash
 docker build -t referral-engine .
+
+# With persistent database (recommended):
 docker run -p 3000:3000 \
   -e OPENAI_API_KEY=your_key \
-  -e PORT=3000 \
+  -v referral_data:/data \
+  referral-engine
+
+# Ephemeral (data lost on restart):
+docker run -p 3000:3000 \
+  -e OPENAI_API_KEY=your_key \
+  -e DB_PATH=/tmp/referral_engine.db \
   referral-engine
 ```
 
@@ -290,7 +298,7 @@ Push to GitHub and deploy from the repo. The Dockerfile handles everything. Requ
 |----------|----------|---------|-------|
 | `OPENAI_API_KEY` | **Yes** | — | LLM API key for agent pipeline |
 | `PORT` | No | 3000 | Server port (CreateOS sets this) |
-| `DB_PATH` | No | `/tmp/referral_engine.db` | Writable DB path |
+| `DB_PATH` | No | `/data/referral_engine.db` | Writable DB path |
 | `LANDING_PAGE_DIR` | No | `/app/static` | Static assets path |
 
 ### Manual (pip)
