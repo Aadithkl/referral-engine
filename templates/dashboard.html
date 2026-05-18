@@ -113,6 +113,18 @@
   .param-info:hover { color: var(--primary); border-color: var(--primary); }
   .param-info .tooltip { display: none; position: absolute; bottom: 18px; left: -80px; width: 180px; background: var(--surface2); border: 1px solid var(--primary); border-radius: 6px; padding: 6px 8px; font-size: 9px; color: var(--text); font-weight: 400; text-align: left; line-height: 1.4; z-index: 100; pointer-events: none; white-space: normal; }
   .param-info:hover .tooltip { display: block; }
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-backdrop.show { display: flex; }
+  .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; max-width: 480px; width: 90%; text-align: center; }
+  .modal-card h3 { font-size: 18px; color: var(--active); margin-bottom: 12px; }
+  .modal-card p { font-size: 13px; line-height: 1.7; color: var(--muted); margin-bottom: 16px; }
+  .modal-card .modal-dismiss-label { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--dim); cursor: pointer; margin-bottom: 20px; }
+  .modal-card .modal-dismiss-label input { accent-color: var(--primary); cursor: pointer; }
+  .modal-card .modal-actions { display: flex; gap: 10px; justify-content: center; }
+  .modal-card .modal-actions button { border: none; border-radius: 8px; padding: 10px 24px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .modal-card .modal-btn-dismiss { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .modal-card .modal-btn-run { background: var(--primary); color: #fff; }
+  .modal-card .modal-actions button:hover { filter: brightness(1.15); }
 </style>
 </head>
 <body>
@@ -151,6 +163,20 @@
   </main>
 </div>
 
+<div class="modal-backdrop" id="testStageModal">
+  <div class="modal-card">
+    <h3>Test Stage</h3>
+    <p>This is a demo environment. The pipeline runs auto-generated test data — no real APIs, no live user data, no production connections. For production, wire in your actual Twitter OAuth, user database, and live data pipelines to replace the test values.</p>
+    <label class="modal-dismiss-label">
+      <input type="checkbox" id="dontShowAgain">
+      Don't show again
+    </label>
+    <div class="modal-actions">
+      <button class="modal-btn-run" id="modalDismiss">Got it</button>
+    </div>
+  </div>
+</div>
+
 <script>
 Chart.defaults.font.color = '#94a3b8'; Chart.defaults.font.size = 10; Chart.defaults.borderColor = '#334155';
 const QC = { Influencer: '#3b82f6', Broadcaster: '#f59e0b', Fan: '#10b981', Newcomer: '#8b5cf6' };
@@ -178,12 +204,25 @@ function sliderStep(type) { if (type==='dollar') return 1; if (type==='pct') ret
 function esc2(s) { return String(s||'').replace(/[<>&]/g,''); }
 function gotoUserView() { const uid=document.getElementById('gotoUser').value.trim(); if(uid) window.open('/user/'+uid,'_blank'); }
 
+function showTestStageModal(callback) {
+  if (sessionStorage.getItem('pipeline-disclaimer-seen')) { if (callback) callback(); return; }
+  const modal = document.getElementById('testStageModal');
+  modal.classList.add('show');
+  document.getElementById('modalDismiss').onclick = () => {
+    if (document.getElementById('dontShowAgain').checked)
+      sessionStorage.setItem('pipeline-disclaimer-seen', '1');
+    modal.classList.remove('show');
+    if (callback) callback();
+  };
+}
+
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   t.classList.add('active');
   document.querySelectorAll('aside .panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + t.dataset.tab).classList.add('active');
   if (t.dataset.tab === 'tracking') loadUserTracking();
+  if (t.dataset.tab === 'pipeline') showTestStageModal(null);
 }));
 
 function buildPanels(cfg) {
@@ -492,7 +531,10 @@ function generateRandomUser() {
   document.getElementById('poutcomes').value=j(a.o,0.4); document.getElementById('ptickets').value=j(a.t,0.5); document.getElementById('presolved').value=a.r>=a.t?a.t:j(a.r,0.3);
   document.getElementById('ptrend').value=a.tr;
 }
-async function runPipeline() {
+function runPipeline() {
+  showTestStageModal(() => _runPipeline());
+}
+async function _runPipeline() {
   const btn=document.getElementById('runBtn'),res=document.getElementById('pipeResult'); btn.disabled=true; btn.textContent='Running…';
   const uid=document.getElementById('puid').value||'demo_user';
   try{const r=await fetch('/v1/referral/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,data:{profile:{twitter_followers:Number(document.getElementById('pfollowers').value)||0,twitter_engagement_rate:Number(document.getElementById('pengage').value)||0,twitter_following:Number(document.getElementById('pfollowing').value)||0,account_age_days:Number(document.getElementById('page').value)||0,total_product_sessions_90d:Number(document.getElementById('psessions').value)||0,feature_adoption_count:Number(document.getElementById('pfeatures').value)||0,positive_outcome_events:Number(document.getElementById('poutcomes').value)||0,support_tickets_90d:Number(document.getElementById('ptickets').value)||0,support_tickets_resolved:Number(document.getElementById('presolved').value)||0,recent_activity_trend:document.getElementById('ptrend').value}}})});
