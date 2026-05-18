@@ -10,6 +10,7 @@ RUN mkdir -p /data /tmp
 
 ENV LANDING_PAGE_DIR=/app/static
 ENV DB_PATH=/data/referral_engine.db
+ENV HOME=/tmp
 
 EXPOSE 3000
 
