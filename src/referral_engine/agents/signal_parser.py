@@ -2,6 +2,7 @@
 
 from crewai import Agent, LLM
 from crewai.agent.planning_config import PlanningConfig
+from ..config import settings
 from ..tools.database_tools import (
     database_query_tool, http_receive_tool, data_normalizer_tool,
 )
@@ -10,7 +11,11 @@ from ..guardrails import validate_no_pii
 
 
 def _create_llm():
-    llm = LLM(model="openai/deepseek-v4-flash", base_url="https://opencode.ai/zen/go/v1")
+    llm = LLM(
+        model=settings.OPENAI_MODEL_NAME,
+        base_url=settings.OPENAI_BASE_URL,
+        api_key=settings.OPENAI_API_KEY,
+    )
     llm.supports_function_calling = lambda: False
     return llm
 

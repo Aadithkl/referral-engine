@@ -6,11 +6,16 @@ Output validated by validate_ask_decision guardrail.
 """
 
 from crewai import Agent, LLM
+from ..config import settings
 from ..guardrails import validate_ask_decision
 
 
 def _create_llm():
-    llm = LLM(model="openai/deepseek-v4-flash", base_url="https://opencode.ai/zen/go/v1")
+    llm = LLM(
+        model=settings.OPENAI_MODEL_NAME,
+        base_url=settings.OPENAI_BASE_URL,
+        api_key=settings.OPENAI_API_KEY,
+    )
     llm.supports_function_calling = lambda: False
     return llm
 
