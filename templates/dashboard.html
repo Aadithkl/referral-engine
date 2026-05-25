@@ -115,9 +115,12 @@
   .param-info:hover .tooltip { display: block; }
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
   .modal-backdrop.show { display: flex; }
-  .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; max-width: 480px; width: 90%; text-align: center; }
-  .modal-card h3 { font-size: 18px; color: var(--active); margin-bottom: 12px; }
-  .modal-card p { font-size: 13px; line-height: 1.7; color: var(--muted); margin-bottom: 16px; }
+  .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; max-width: 560px; width: 90%; text-align: left; }
+  .modal-card h3 { font-size: 18px; color: var(--active); margin-bottom: 16px; text-align: center; }
+  .modal-card p { font-size: 13px; line-height: 1.7; color: var(--muted); margin-bottom: 14px; }
+  .modal-card .modal-quadrants { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .modal-card .modal-quadrants div { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+  .modal-card .modal-quadrants div strong { font-size: 13px; }
   .modal-card .modal-dismiss-label { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--dim); cursor: pointer; margin-bottom: 20px; }
   .modal-card .modal-dismiss-label input { accent-color: var(--primary); cursor: pointer; }
   .modal-card .modal-actions { display: flex; gap: 10px; justify-content: center; }
@@ -164,8 +167,19 @@
 
 <div class="modal-backdrop" id="testStageModal">
   <div class="modal-card">
-    <h3>Test Stage</h3>
-    <p>This is a demo environment. The pipeline runs auto-generated test data — no real APIs, no live user data, no production connections. For production, wire in your actual Twitter OAuth, user database, and live data pipelines to replace the test values.</p>
+    <h3>Test environment</h3>
+    <p>This is a demo. The pipeline runs on auto-generated test data. No real APIs, no live user data. For production, connect your Twitter OAuth, user database, and live data pipelines.</p>
+
+    <div class="modal-quadrants">
+      <div><strong style="color:#3b82f6">Influencer</strong><br>large following, heavy product user</div>
+      <div><strong style="color:#f59e0b">Broadcaster</strong><br>large following, light product usage</div>
+      <div><strong style="color:#10b981">Fan</strong><br>small following, heavy product user</div>
+      <div><strong style="color:#8b5cf6">Newcomer</strong><br>low on both, still early</div>
+    </div>
+
+    <p><strong>The reward curve</strong><br>Instead of flat payouts, the curve lets rewards shift as referrals increase. Starting high, dipping, surging, then levelling off. X-axis = referral count. Y-axis = reward value at each step. Each quadrant gets its own curve. An Influencer's can be more generous than a Newcomer's because their referrals carry more reach.</p>
+
+    <p><strong>The LLM pipeline</strong><br>The curve you set per quadrant is the starting point. The pipeline personalises it further per individual based on their actual scores. Two Influencers with different follower counts won't get identical curves.</p>
     <label class="modal-dismiss-label">
       <input type="checkbox" id="dontShowAgain">
       Don't show again
